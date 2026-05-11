@@ -32,7 +32,6 @@ export default function GalleryScreen() {
         refreshControl={<RefreshControl refreshing={loading} onRefresh={refresh} tintColor="#C8B4E8" />}
         renderItem={({ item }) => (
           <PhotoCard
-            uploadId={item.id}
             upscaledPath={item.upscaled_path}
             onPress={() => router.push({ pathname: '/(tabs)/gallery/[id]', params: { id: item.id } })}
           />

@@ -4,7 +4,6 @@ import { Image, TouchableOpacity, StyleSheet } from 'react-native'
 import { getSignedUrl } from '../lib/signedUrls'
 
 type Props = {
-  uploadId: string
   upscaledPath: string
   onPress: () => void
 }
