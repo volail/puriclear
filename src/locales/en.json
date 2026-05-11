@@ -1,0 +1,103 @@
+{
+  "common": {
+    "appName": "PuriClear",
+    "upscale": "Upscale",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "share": "Share",
+    "save": "Save",
+    "back": "Back",
+    "confirm": "Confirm",
+    "loading": "Loading...",
+    "processing": "AI Processing...",
+    "error": "An error occurred",
+    "retry": "Retry",
+    "signOut": "Sign Out",
+    "signIn": "Sign In",
+    "close": "Close"
+  },
+  "onboarding": {
+    "screen1Title": "Enhance Your Purikura",
+    "screen1Body": "AI upscales your low-res purikura prints 4x",
+    "screen2Title": "Save & Share Anywhere",
+    "screen2Body": "Upscaled photos are saved to your cloud album, ready to share anytime",
+    "next": "Next",
+    "getStarted": "Get Started"
+  },
+  "login": {
+    "title": "Welcome to PuriClear",
+    "subtitle": "Sign in to get started",
+    "appleSignIn": "Sign in with Apple",
+    "googleSignIn": "Sign in with Google"
+  },
+  "upload": {
+    "takePhoto": "Take Photo",
+    "importLibrary": "Import from Library",
+    "permissionDeniedCamera": "Camera access denied",
+    "permissionDeniedLibrary": "Photo library access denied",
+    "permissionExplanationCamera": "Camera access is needed to photograph your purikura",
+    "permissionExplanationLibrary": "Photo library access is needed to import purikura",
+    "openSettings": "Open Settings",
+    "tooLarge": "Image too large (max 20MB)",
+    "unsupportedType": "Supported formats: JPEG, PNG, HEIC"
+  },
+  "preview": {
+    "upscaleButton": "✨ Upscale"
+  },
+  "gallery": {
+    "title": "Gallery",
+    "empty": "No purikura yet!",
+    "emptyAction": "+ Upscale your first one",
+    "deleteConfirmTitle": "Delete Photo",
+    "deleteConfirmMessage": "Delete this photo? This cannot be undone.",
+    "saveSuccess": "Saved to photo library",
+    "saveDenied": "Photo library access denied"
+  },
+  "settings": {
+    "title": "Settings",
+    "language": "Language",
+    "languageJa": "日本語",
+    "languageEn": "English",
+    "account": "Account",
+    "subscription": "Subscription",
+    "planFree": "Free Plan",
+    "planPro": "Pro Plan",
+    "renewalDate": "Renewal Date",
+    "manageSubscription": "Manage Subscription",
+    "privacyPolicy": "Privacy Policy",
+    "termsOfService": "Terms of Service",
+    "support": "Support / Contact",
+    "signOut": "Sign Out",
+    "deleteAccount": "Delete Account",
+    "deleteAccountConfirmTitle": "Delete account?",
+    "deleteAccountConfirmMessage": "All photos and account data will be deleted. This cannot be undone.",
+    "deleteAccountSuccess": "Account deleted"
+  },
+  "subscription": {
+    "title": "Upgrade to Pro",
+    "free": "Free",
+    "pro": "Pro",
+    "uploadsPerDay": "upscales / day",
+    "uploadsPerMonth": "upscales / month",
+    "cloudAlbum": "Cloud album",
+    "shareAnywhere": "Share anywhere",
+    "price": "¥980 / month",
+    "subscribe": "Upgrade to Pro",
+    "restorePurchase": "Restore Purchase",
+    "successTitle": "You're all set! ✨",
+    "successBody": "Your Pro plan is now active",
+    "successCta": "Start upscaling →",
+    "processingTitle": "Processing your subscription...",
+    "timeoutMessage": "Payment received — please restart the app to activate Pro",
+    "cancelTitle": "No worries!",
+    "cancelBody": "You're still on the free plan (3 upscales/day)",
+    "cancelCta": "Back to app",
+    "quotaExceeded": "You've used all free upscales for today"
+  },
+  "errors": {
+    "network": "Network error. Please check your connection.",
+    "processingFailed": "AI processing failed. Please try again.",
+    "quotaExceeded": "Daily free limit reached",
+    "authFailed": "Authentication failed"
+  }
+}

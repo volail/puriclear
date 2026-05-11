@@ -1,0 +1,103 @@
+{
+  "common": {
+    "appName": "PuriClear",
+    "upscale": "アップスケール",
+    "cancel": "キャンセル",
+    "delete": "削除",
+    "share": "シェア",
+    "save": "保存",
+    "back": "戻る",
+    "confirm": "確認",
+    "loading": "読み込み中...",
+    "processing": "AIが処理中...",
+    "error": "エラーが発生しました",
+    "retry": "再試行",
+    "signOut": "サインアウト",
+    "signIn": "サインイン",
+    "close": "閉じる"
+  },
+  "onboarding": {
+    "screen1Title": "プリクラをもっとキレイに",
+    "screen1Body": "AIが低画質のプリクラを4倍に高解像度化します",
+    "screen2Title": "クラウドに保存・シェア",
+    "screen2Body": "アップスケールした写真はクラウドに保存され、いつでもシェアできます",
+    "next": "次へ",
+    "getStarted": "はじめる"
+  },
+  "login": {
+    "title": "PuriClearへようこそ",
+    "subtitle": "サインインして始めましょう",
+    "appleSignIn": "Appleでサインイン",
+    "googleSignIn": "Googleでサインイン"
+  },
+  "upload": {
+    "takePhoto": "写真を撮る",
+    "importLibrary": "ライブラリから選ぶ",
+    "permissionDeniedCamera": "カメラへのアクセスが拒否されました",
+    "permissionDeniedLibrary": "フォトライブラリへのアクセスが拒否されました",
+    "permissionExplanationCamera": "プリクラを撮影するためにカメラへのアクセスが必要です",
+    "permissionExplanationLibrary": "プリクラをインポートするためにフォトライブラリへのアクセスが必要です",
+    "openSettings": "設定を開く",
+    "tooLarge": "画像が大きすぎます（最大20MB）",
+    "unsupportedType": "対応形式: JPEG, PNG, HEIC"
+  },
+  "preview": {
+    "upscaleButton": "✨ アップスケール"
+  },
+  "gallery": {
+    "title": "ギャラリー",
+    "empty": "まだプリクラがありません",
+    "emptyAction": "最初の一枚をアップスケール",
+    "deleteConfirmTitle": "写真を削除",
+    "deleteConfirmMessage": "この写真を削除しますか？この操作は取り消せません。",
+    "saveSuccess": "フォトライブラリに保存しました",
+    "saveDenied": "フォトライブラリへのアクセスが拒否されました"
+  },
+  "settings": {
+    "title": "設定",
+    "language": "言語",
+    "languageJa": "日本語",
+    "languageEn": "English",
+    "account": "アカウント",
+    "subscription": "サブスクリプション",
+    "planFree": "フリープラン",
+    "planPro": "Proプラン",
+    "renewalDate": "次回更新日",
+    "manageSubscription": "サブスクリプションを管理",
+    "privacyPolicy": "プライバシーポリシー",
+    "termsOfService": "利用規約",
+    "support": "サポート / お問い合わせ",
+    "signOut": "サインアウト",
+    "deleteAccount": "アカウントを削除",
+    "deleteAccountConfirmTitle": "アカウントを削除しますか？",
+    "deleteAccountConfirmMessage": "すべての写真とアカウント情報が削除されます。この操作は取り消せません。",
+    "deleteAccountSuccess": "アカウントを削除しました"
+  },
+  "subscription": {
+    "title": "Proプランにアップグレード",
+    "free": "フリー",
+    "pro": "Pro",
+    "uploadsPerDay": "アップスケール / 日",
+    "uploadsPerMonth": "アップスケール / 月",
+    "cloudAlbum": "クラウドアルバム",
+    "shareAnywhere": "どこでもシェア",
+    "price": "¥980 / 月",
+    "subscribe": "Proにアップグレード",
+    "restorePurchase": "購入を復元",
+    "successTitle": "準備完了！✨",
+    "successBody": "Proプランが有効になりました",
+    "successCta": "アップスケールを始める →",
+    "processingTitle": "サブスクリプションを処理中...",
+    "timeoutMessage": "お支払いが確認されました。アプリを再起動してProプランを有効にしてください。",
+    "cancelTitle": "大丈夫です！",
+    "cancelBody": "フリープランのまま続けます（3枚 / 日）",
+    "cancelCta": "アプリに戻る",
+    "quotaExceeded": "本日の無料枠を使い切りました"
+  },
+  "errors": {
+    "network": "ネットワークエラー。接続を確認してください。",
+    "processingFailed": "AI処理に失敗しました。もう一度試してください。",
+    "quotaExceeded": "本日の無料枠を使い切りました",
+    "authFailed": "認証に失敗しました"
+  }
+}

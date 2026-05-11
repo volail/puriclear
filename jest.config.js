@@ -8,5 +8,6 @@ module.exports = {
     '^react-native-purchases$': '<rootDir>/__mocks__/react-native-purchases.js',
     '^expo-apple-authentication$': '<rootDir>/__mocks__/expo-apple-authentication.js',
     '^@react-native-google-signin/google-signin$': '<rootDir>/__mocks__/google-signin.js',
+    '^expo-localization$': '<rootDir>/__mocks__/expo-localization.js',
   },
 }
