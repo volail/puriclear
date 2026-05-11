@@ -12,10 +12,11 @@ export default function Preview() {
   const [processing, setProcessing] = useState(false)
 
   async function handleUpscale() {
-    if (!uri) return
+    if (!uri || typeof uri !== 'string') return
+    const mime = typeof mimeType === 'string' ? mimeType : 'image/jpeg'
     try {
       setProcessing(true)
-      const result = await invokeProcessImage(uri, mimeType ?? 'image/jpeg')
+      const result = await invokeProcessImage(uri, mime)
       router.replace({
         pathname: '/(tabs)/gallery/[id]',
         params: { id: result.upload_id, signedUrl: result.signed_url },
@@ -40,8 +41,8 @@ export default function Preview() {
       <View style={styles.actions}>
         <TouchableOpacity
           onPress={handleUpscale}
-          disabled={processing || !uri}
-          style={[styles.button, styles.upscaleButton, (processing || !uri) && styles.disabled]}
+          disabled={processing || !uri || typeof uri !== 'string'}
+          style={[styles.button, styles.upscaleButton, (processing || !uri || typeof uri !== 'string') && styles.disabled]}
         >
           <Text style={styles.upscaleText}>{t('preview.upscaleButton')}</Text>
         </TouchableOpacity>
