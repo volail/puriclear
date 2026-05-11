@@ -19,7 +19,7 @@ export default function Preview() {
       const result = await invokeProcessImage(uri, mime)
       router.replace({
         pathname: '/(tabs)/gallery/[id]',
-        params: { id: result.upload_id, signedUrl: result.signed_url },
+        params: { id: result.uploadId, signedUrl: result.signedUrl },
       })
     } catch (err: any) {
       if (err.message === 'QUOTA_EXCEEDED') {

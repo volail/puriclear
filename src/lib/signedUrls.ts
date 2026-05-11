@@ -17,9 +17,9 @@ export async function getSignedUrl(path: string): Promise<string> {
 }
 
 export async function getUploadSignedUrl(uploadId: string): Promise<string> {
-  const res = await supabase.functions.invoke('get-upload-url', { body: { upload_id: uploadId } })
+  const res = await supabase.functions.invoke(`get-upload-url?uploadId=${encodeURIComponent(uploadId)}`)
   if (res.error) throw res.error
-  const url = res.data?.signed_url
-  if (typeof url !== 'string') throw new Error('Edge function returned no signed_url')
+  const url = res.data?.signedUrl
+  if (typeof url !== 'string') throw new Error('Edge function returned no signedUrl')
   return url
 }

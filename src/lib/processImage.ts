@@ -2,7 +2,7 @@ import { Platform } from 'react-native'
 import * as FileSystem from 'expo-file-system'
 import { supabase } from './supabase'
 
-type ProcessResult = { upload_id: string; signed_url: string }
+type ProcessResult = { uploadId: string; signedUrl: string }
 
 export async function invokeProcessImage(uri: string, mimeType: string): Promise<ProcessResult> {
   let base64: string
@@ -18,11 +18,11 @@ export async function invokeProcessImage(uri: string, mimeType: string): Promise
   }
 
   const { data, error } = await supabase.functions.invoke('process-image', {
-    body: { image_base64: base64, mime_type: mimeType },
+    body: { imageBase64: base64, mimeType },
   })
 
   if (error) throw new Error(error.message ?? 'PROCESSING_FAILED')
-  if (!data?.upload_id || !data?.signed_url) throw new Error('PROCESSING_FAILED')
+  if (!data?.uploadId || !data?.signedUrl) throw new Error('PROCESSING_FAILED')
   return data as ProcessResult
 }
 

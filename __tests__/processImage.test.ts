@@ -10,17 +10,17 @@ jest.mock('../src/lib/supabase', () => ({
   supabase: {
     functions: {
       invoke: jest.fn().mockResolvedValue({
-        data: { upload_id: 'abc123', signed_url: 'https://example.com/img.jpg' },
+        data: { uploadId: 'abc123', signedUrl: 'https://example.com/img.jpg' },
         error: null,
       }),
     },
   },
 }))
 
-test('returns upload_id and signed_url on native', async () => {
+test('returns uploadId and signedUrl on native', async () => {
   const result = await invokeProcessImage('file://photo.jpg', 'image/jpeg')
-  expect(result.upload_id).toBe('abc123')
-  expect(result.signed_url).toBe('https://example.com/img.jpg')
+  expect(result.uploadId).toBe('abc123')
+  expect(result.signedUrl).toBe('https://example.com/img.jpg')
 })
 
 test('throws on QUOTA_EXCEEDED error', async () => {
@@ -35,7 +35,7 @@ test('throws on QUOTA_EXCEEDED error', async () => {
 test('throws PROCESSING_FAILED when data is incomplete', async () => {
   const { supabase } = require('../src/lib/supabase')
   supabase.functions.invoke.mockResolvedValueOnce({
-    data: { upload_id: 'abc123' }, // missing signed_url
+    data: { uploadId: 'abc123' }, // missing signedUrl
     error: null,
   })
   await expect(invokeProcessImage('file://photo.jpg', 'image/jpeg')).rejects.toThrow('PROCESSING_FAILED')
@@ -83,7 +83,7 @@ describe('web path', () => {
       }
     } as any
     const result = await invokeProcessImage('https://example.com/photo.jpg', 'image/jpeg')
-    expect(result.upload_id).toBe('abc123')
-    expect(result.signed_url).toBe('https://example.com/img.jpg')
+    expect(result.uploadId).toBe('abc123')
+    expect(result.signedUrl).toBe('https://example.com/img.jpg')
   })
 })
