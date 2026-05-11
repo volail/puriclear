@@ -1,24 +1,22 @@
-import { useState } from 'react'
 import { Platform } from 'react-native'
 import * as MediaLibrary from 'expo-media-library'
 
-export function useMediaSave() {
-  const [permissionDenied, setPermissionDenied] = useState(false)
+type SaveResult = { saved: boolean; denied: boolean }
 
-  async function saveToDevice(uri: string): Promise<boolean> {
+export function useMediaSave() {
+  async function saveToDevice(uri: string): Promise<SaveResult> {
     if (Platform.OS === 'web') {
       const a = document.createElement('a')
       a.href = uri
       a.download = 'puriclear.jpg'
       a.click()
-      return true
+      return { saved: true, denied: false }
     }
     const { granted } = await MediaLibrary.requestPermissionsAsync()
-    if (!granted) { setPermissionDenied(true); return false }
-    setPermissionDenied(false)
+    if (!granted) return { saved: false, denied: true }
     await MediaLibrary.saveToLibraryAsync(uri)
-    return true
+    return { saved: true, denied: false }
   }
 
-  return { saveToDevice, permissionDenied }
+  return { saveToDevice }
 }

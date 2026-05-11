@@ -16,7 +16,7 @@ export default function PhotoDetail() {
     typeof initialUrl === 'string' ? initialUrl : null
   )
   const { shareUrl } = useShare()
-  const { saveToDevice, permissionDenied } = useMediaSave()
+  const { saveToDevice } = useMediaSave()
 
   useEffect(() => {
     if (!url && id && typeof id === 'string') {
@@ -31,9 +31,9 @@ export default function PhotoDetail() {
 
   async function handleSave() {
     if (!url) return
-    const ok = await saveToDevice(url)
-    if (ok) Alert.alert(t('gallery.saveSuccess'))
-    else if (permissionDenied) Alert.alert(t('gallery.saveDenied'))
+    const { saved, denied } = await saveToDevice(url)
+    if (saved) Alert.alert(t('gallery.saveSuccess'))
+    else if (denied) Alert.alert(t('gallery.saveDenied'))
   }
 
   async function handleDelete() {

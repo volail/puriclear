@@ -6,17 +6,22 @@ jest.mock('expo-media-library', () => ({
   saveToLibraryAsync: jest.fn().mockResolvedValue(undefined),
 }))
 
-test('saveToDevice calls saveToLibraryAsync on mobile', async () => {
+test('saveToDevice calls saveToLibraryAsync on mobile and returns saved:true', async () => {
   const { result } = renderHook(() => useMediaSave())
-  await act(async () => { await result.current.saveToDevice('file://photo.jpg') })
+  let saveResult: any
+  await act(async () => { saveResult = await result.current.saveToDevice('file://photo.jpg') })
   const { saveToLibraryAsync } = require('expo-media-library')
   expect(saveToLibraryAsync).toHaveBeenCalledWith('file://photo.jpg')
+  expect(saveResult.saved).toBe(true)
+  expect(saveResult.denied).toBe(false)
 })
 
-test('returns permissionDenied when denied', async () => {
+test('returns denied:true when permission denied', async () => {
   const mediaLibrary = require('expo-media-library')
   mediaLibrary.requestPermissionsAsync.mockResolvedValueOnce({ granted: false })
   const { result } = renderHook(() => useMediaSave())
-  await act(async () => { await result.current.saveToDevice('file://photo.jpg') })
-  expect(result.current.permissionDenied).toBe(true)
+  let saveResult: any
+  await act(async () => { saveResult = await result.current.saveToDevice('file://photo.jpg') })
+  expect(saveResult.saved).toBe(false)
+  expect(saveResult.denied).toBe(true)
 })
