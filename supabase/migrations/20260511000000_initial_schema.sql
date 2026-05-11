@@ -45,5 +45,18 @@ create table public.subscription_status (
   expires_at           timestamptz,
   updated_at           timestamptz not null default now(),
   constraint subscription_plan_ck     check (plan in ('free', 'pro')),
-  constraint subscription_platform_ck check (platform in ('ios', 'android', 'web'))
+  constraint subscription_platform_ck check (platform is null or platform in ('ios', 'android', 'web'))
 );
+
+-- Indexes for common query patterns
+create index on public.uploads (user_id, created_at desc);
+create index on public.uploads (user_id, status);
+create index on public.subscription_status (provider_customer_id);
+create index on public.folders (user_id);
+
+-- Enable RLS (policies defined in next migration)
+alter table public.users               enable row level security;
+alter table public.folders             enable row level security;
+alter table public.uploads             enable row level security;
+alter table public.daily_usage         enable row level security;
+alter table public.subscription_status enable row level security;
