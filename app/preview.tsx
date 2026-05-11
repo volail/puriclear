@@ -40,8 +40,8 @@ export default function Preview() {
       <View style={styles.actions}>
         <TouchableOpacity
           onPress={handleUpscale}
-          disabled={processing}
-          style={[styles.button, styles.upscaleButton, processing && styles.disabled]}
+          disabled={processing || !uri}
+          style={[styles.button, styles.upscaleButton, (processing || !uri) && styles.disabled]}
         >
           <Text style={styles.upscaleText}>{t('preview.upscaleButton')}</Text>
         </TouchableOpacity>

@@ -1,11 +1,21 @@
+import { Platform } from 'react-native'
+import * as FileSystem from 'expo-file-system'
 import { supabase } from './supabase'
 
 type ProcessResult = { upload_id: string; signed_url: string }
 
 export async function invokeProcessImage(uri: string, mimeType: string): Promise<ProcessResult> {
-  const response = await fetch(uri)
-  const blob = await response.blob()
-  const base64 = await blobToBase64(blob)
+  let base64: string
+  if (Platform.OS === 'web') {
+    const response = await fetch(uri)
+    if (!response.ok) throw new Error('FETCH_FAILED')
+    const blob = await response.blob()
+    base64 = await blobToBase64(blob)
+  } else {
+    base64 = await FileSystem.readAsStringAsync(uri, {
+      encoding: FileSystem.EncodingType.Base64,
+    })
+  }
 
   const { data, error } = await supabase.functions.invoke('process-image', {
     body: { image_base64: base64, mime_type: mimeType },
@@ -20,7 +30,8 @@ function blobToBase64(blob: Blob): Promise<string> {
   return new Promise((resolve, reject) => {
     const reader = new FileReader()
     reader.onloadend = () => {
-      const result = reader.result as string
+      const result = reader.result
+      if (typeof result !== 'string') { reject(new Error('FETCH_FAILED')); return }
       resolve(result.split(',')[1])
     }
     reader.onerror = reject
