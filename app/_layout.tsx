@@ -7,7 +7,6 @@ import tamaguiConfig from '../src/tamagui.config'
 import { AuthProvider, useAuth } from '../src/contexts/AuthContext'
 import { SubscriptionProvider } from '../src/contexts/SubscriptionContext'
 import { getHasSeenOnboarding } from '../src/lib/storage'
-import { Purchases, LOG_LEVEL } from 'react-native-purchases'
 
 function NavigationGuard({ children }: { children: React.ReactNode }) {
   const { session, isLoading } = useAuth()
@@ -37,13 +36,15 @@ function NavigationGuard({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     if (!session?.user?.id || Platform.OS === 'web') return
-    Purchases.setLogLevel(LOG_LEVEL.DEBUG)
-    Purchases.configure({
-      apiKey: Platform.OS === 'ios'
-        ? process.env.EXPO_PUBLIC_REVENUECAT_IOS_KEY ?? ''
-        : process.env.EXPO_PUBLIC_REVENUECAT_ANDROID_KEY ?? '',
+    import('react-native-purchases').then(({ Purchases, LOG_LEVEL }) => {
+      Purchases.setLogLevel(LOG_LEVEL.DEBUG)
+      Purchases.configure({
+        apiKey: Platform.OS === 'ios'
+          ? process.env.EXPO_PUBLIC_REVENUECAT_IOS_KEY ?? ''
+          : process.env.EXPO_PUBLIC_REVENUECAT_ANDROID_KEY ?? '',
+      })
+      Purchases.logIn(session.user.id)
     })
-    Purchases.logIn(session.user.id)
   }, [session?.user?.id])
 
   return <>{children}</>
