@@ -21,6 +21,9 @@
       "NSCameraUsageDescription": "カメラでプリクラを撮影します。 / Take a photo of your purikura print.",
       "NSPhotoLibraryUsageDescription": "プリクラをフォトライブラリからインポートします。 / Import purikura from your photo library."
     },
+    "ios": {
+      "bundleIdentifier": "com.puriclear.app"
+    },
     "android": {
       "adaptiveIcon": { "foregroundImage": "./assets/adaptive-icon.png", "backgroundColor": "#FFF9FB" }
     },
