@@ -31,6 +31,7 @@ PuriClear is an AI-powered purikura photo enhancer. Users photograph or import l
 
 ```
 app/
+  _layout.tsx            -> root stack; handles auth/main routing and modal presentation
   (auth)/
     _layout.tsx
     onboarding.tsx       -> 2-screen explainer (first launch only)
@@ -49,6 +50,12 @@ app/
     cancel.tsx           -> Stripe cancel page (web only)
   +not-found.tsx
 ```
+
+Root stack behavior:
+- `preview.tsx` uses `presentation: "modal"` and `headerShown: false`.
+- `onboarding.tsx` is shown when `hasSeenOnboarding` is false, regardless of auth state.
+- `login.tsx` is shown when onboarding has been seen and the user is unauthenticated.
+- Tab routes are shown when onboarding has been seen and the user is authenticated.
 
 ### Launch Sequence
 
@@ -106,8 +113,12 @@ app/
 
 ### Photo Detail
 - Full-screen photo view
-- Share button -> native share sheet (LINE, Instagram, save to camera roll, etc.)
-- Save button -> writes the upscaled image to the device photo library via `expo-media-library` after requesting permission
+- **Share button:**
+  - iOS/Android: native share sheet via `expo-sharing` (LINE, Instagram, etc.)
+  - Web: uses the browser Web Share API if available; falls back to opening the image in a new tab
+- **Save button:**
+  - iOS/Android: saves to device photo library via `expo-media-library` after requesting permission; shows permission-denied state if denied
+  - Web: triggers a direct download of the image file (standard `<a download>` link); no library permission needed
 - Delete button -> confirmation dialog -> delete from storage + DB -> navigate back to gallery
 
 ### Subscription Page
@@ -122,6 +133,7 @@ Feature comparison layout:
 - Price displayed clearly: ¥980 / month
 - Subscribe button (triggers RevenueCat paywall on iOS/Android, or Stripe Checkout redirect on web)
 - Small "Restore purchase" link below (required by App Store)
+- On iOS/Android, Restore Purchase calls RevenueCat restore purchases and refreshes `subscription_status`; on web, users manage billing through the Stripe customer portal.
 
 **Subscription success page (web only - `/subscription/success`)**
 - "Processing your subscription..." spinner shown on mount while polling
@@ -180,8 +192,8 @@ Feature comparison layout:
 
 ### Photo Detail
 - Full-screen photo view
-- **Share:** native share sheet via `expo-sharing` - user picks LINE, Instagram, etc.
-- **Save:** save to camera roll via `expo-media-library`; if permission is denied, show the permission-denied state.
+- **Share:** `expo-sharing` on iOS/Android (native share sheet); Web Share API with new-tab fallback on web
+- **Save:** `expo-media-library` on iOS/Android (request permission, show denied state if refused); direct file download on web
 - **Delete:** confirmation dialog -> delete from Supabase Storage + remove DB row
 
 ### Subscription (980 yen/month)
@@ -269,6 +281,11 @@ folders (
 
 Migration note: create `folders` before `uploads`, or add the `uploads.folder_id` foreign key after both tables exist.
 
+Recommended indexes:
+- `uploads (user_id, created_at desc)` for gallery pagination
+- `uploads (user_id, status)` for filtering failed/pending items
+- `subscription_status (provider_customer_id)` for webhook/customer lookups
+
 ### Storage Buckets
 | Bucket | Access |
 |---|---|
@@ -326,15 +343,16 @@ Verifies the RevenueCat webhook signature before processing. Extracts `app_user_
 ### `stripe-webhook`
 Verifies the Stripe webhook signature (`stripe-signature` header) before processing. Extracts `user_id` from the session/subscription metadata. Upserts `subscription_status` per event type:
 
-| Event | `plan` | `expires_at` | `platform` |
-|---|---|---|---|
-| `checkout.session.completed` | `'pro'` | subscription period end date | `'web'` | also write `provider_customer_id = session.customer` |
-| `invoice.payment_succeeded` (renewal) | `'pro'` | new period end date | `'web'` |
-| `customer.subscription.updated` (cancel at period end) | unchanged | current period end date | unchanged |
-| `customer.subscription.deleted` | `'free'` | `null` | unchanged |
+| Event | `plan` | `expires_at` | `platform` | Extra |
+|---|---|---|---|---|
+| `checkout.session.completed` | `'pro'` | subscription period end date | `'web'` | write `provider_customer_id = session.customer` |
+| `invoice.payment_succeeded` (renewal) | `'pro'` | new period end date | `'web'` | - |
+| `customer.subscription.updated` (cancel at period end) | unchanged | current period end date | unchanged | - |
+| `customer.subscription.deleted` | `'free'` | `null` | unchanged | - |
 
 ### `create-stripe-checkout-session`
 - Verify JWT.
+- Look up `subscription_status.provider_customer_id` for the user. If one exists, pass it as `customer` to the Checkout session (reuses the existing Stripe customer). If not, omit `customer` and let Stripe create one - `provider_customer_id` will be written by the `checkout.session.completed` webhook.
 - Create a Stripe Checkout session with `mode = 'subscription'`, the 980 JPY monthly price ID, `success_url` and `cancel_url` set to the Vercel return URLs, and `metadata.user_id = supabaseUserId`.
 - Return the Checkout session URL; client redirects to it.
 
@@ -346,6 +364,7 @@ Verifies the Stripe webhook signature (`stripe-signature` header) before process
 ### `get-upload-url`
 - Verify JWT.
 - Confirm the requested `upload_id` belongs to the authenticated user.
+- Require `uploads.status = 'done'` and `upscaled_path IS NOT NULL`.
 - Return a fresh 1-hour signed URL for the `upscaled_path`.
 
 ### `delete-account`
