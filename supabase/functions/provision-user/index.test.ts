@@ -32,3 +32,15 @@ Deno.test('is idempotent — ignores duplicate key errors', async () => {
   const res = await handler(makeReq('user-abc'), db as any, SECRET)
   assertEquals(res.status, 200)
 })
+
+Deno.test('propagates non-duplicate subscription_status error', async () => {
+  const db = {
+    from: (t: string) => ({
+      insert: () => t === 'users'
+        ? { error: null }
+        : { error: { code: '23503' } },
+    }),
+  }
+  const res = await handler(makeReq('user-abc'), db as any, SECRET)
+  assertEquals(res.status, 500)
+})
