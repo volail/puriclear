@@ -11,7 +11,8 @@ test('switches to en', () => {
   expect(i18n.t('common.upscale')).toBe('Upscale')
 })
 
-test('falls back to ja for missing en key', () => {
+test('falls back to ja for key missing in en', () => {
   i18n.changeLanguage('en')
-  expect(i18n.t('common.appName')).toBe('PuriClear')
+  // _jaOnly only exists in ja.json, not en.json — i18next should fall back to ja
+  expect(i18n.t('common._jaOnly')).toBe('テスト専用')
 })

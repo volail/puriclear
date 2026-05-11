@@ -14,7 +14,8 @@
     "retry": "再試行",
     "signOut": "サインアウト",
     "signIn": "サインイン",
-    "close": "閉じる"
+    "close": "閉じる",
+    "_jaOnly": "テスト専用"
   },
   "onboarding": {
     "screen1Title": "プリクラをもっとキレイに",

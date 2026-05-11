@@ -13,16 +13,6 @@ const config = createTamagui({
       grey: '#F2EEF5',
     },
   },
-  themes: {
-    ...tamaguiConfig.themes,
-    light: {
-      ...tamaguiConfig.themes.light,
-      background: '#FFF9FB',
-      backgroundHover: '#F2EEF5',
-      color: '#2D2D2D',
-      borderColor: '#E8DFF0',
-    },
-  },
 })
 
 export type AppConfig = typeof config
