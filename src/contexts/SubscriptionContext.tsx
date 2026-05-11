@@ -47,7 +47,7 @@ export function SubscriptionProvider({ children }: { children: React.ReactNode }
       setStatus(null)
       setIsLoading(false)
     }
-  }, [session?.user?.id])
+  }, [session?.user?.id, refresh])
 
   return (
     <SubscriptionContext.Provider value={{ status, isLoading, refresh }}>

@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useEffect, useState } from 'react'
+import React, { createContext, useContext, useEffect, useState, useCallback } from 'react'
 import { Session } from '@supabase/supabase-js'
 import { supabase } from '../lib/supabase'
 
@@ -26,17 +26,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [isLoading, setIsLoading] = useState(true)
 
   async function fetchUserRow(userId: string) {
-    const { data } = await supabase
+    const { data, error } = await supabase
       .from('users')
       .select('*')
       .eq('id', userId)
       .single()
+    if (error) {
+      setUserRow(null)
+      return
+    }
     setUserRow(data)
   }
 
-  async function refreshUserRow() {
+  const refreshUserRow = useCallback(async () => {
     if (session?.user?.id) await fetchUserRow(session.user.id)
-  }
+  }, [session])
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
