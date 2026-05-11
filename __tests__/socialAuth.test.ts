@@ -29,3 +29,21 @@ test('signInWithGoogle calls signInWithIdToken with google token', async () => {
     expect.objectContaining({ provider: 'google', token: 'mock-google-token' })
   )
 })
+
+test('signInWithApple throws when identityToken is null', async () => {
+  const { signInAsync } = require('expo-apple-authentication')
+  signInAsync.mockResolvedValueOnce({ identityToken: null })
+  await expect(signInWithApple()).rejects.toThrow('No Apple identity token')
+})
+
+test('signInWithApple returns silently on user cancellation', async () => {
+  const { signInAsync } = require('expo-apple-authentication')
+  signInAsync.mockRejectedValueOnce({ code: '1001' })
+  await expect(signInWithApple()).resolves.toBeUndefined()
+})
+
+test('signInWithGoogle returns silently on user cancellation', async () => {
+  const { GoogleSignin, statusCodes } = require('@react-native-google-signin/google-signin')
+  GoogleSignin.signIn.mockRejectedValueOnce({ code: statusCodes.SIGN_IN_CANCELLED })
+  await expect(signInWithGoogle()).resolves.toBeUndefined()
+})
