@@ -10,19 +10,31 @@ export async function handler(
     return new Response('Unauthorized', { status: 401 })
   }
 
-  const { record } = await req.json()
-  const userId: string = record.id
+  const body = await req.json()
+  const userId: string | undefined = body?.record?.id
+  if (!userId) {
+    return new Response(JSON.stringify({ error: 'missing record.id' }), {
+      status: 400,
+      headers: { 'Content-Type': 'application/json' },
+    })
+  }
 
   const { error: ue } = await supabase.from('users').insert({ id: userId, locale: 'ja' })
   if (ue && ue.code !== '23505') {
     console.error('provision-user: users insert failed', ue)
-    return new Response(JSON.stringify({ error: 'user insert failed' }), { status: 500 })
+    return new Response(JSON.stringify({ error: 'user insert failed' }), {
+      status: 500,
+      headers: { 'Content-Type': 'application/json' },
+    })
   }
 
   const { error: se } = await supabase.from('subscription_status').insert({ user_id: userId, plan: 'free' })
   if (se && se.code !== '23505') {
     console.error('provision-user: subscription insert failed', se)
-    return new Response(JSON.stringify({ error: 'subscription insert failed' }), { status: 500 })
+    return new Response(JSON.stringify({ error: 'subscription insert failed' }), {
+      status: 500,
+      headers: { 'Content-Type': 'application/json' },
+    })
   }
 
   return new Response(JSON.stringify({ ok: true }), {
