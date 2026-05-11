@@ -66,30 +66,7 @@ Root stack behavior:
 
 ---
 
-## Screens
-
-### Splash Screen
-- Shown on every launch, before any navigation decision
-- PuriClear logo + app name centered on cream white background
-- Duration: ~2 seconds, then transitions to onboarding (first launch) or login / main app
-
-### Onboarding (first launch only)
-
-**Screen 1 - What the app does**
-- Side-by-side visual: blurry purikura on the left -> crisp 4x version on the right, with an arrow between them
-- App name at top
-- Tagline (bilingual): 「小さなプリクラ、きれいに」 / "Make your purikura beautiful"
-- "Next ->" button
-
-**Screen 2 - Cloud album & sharing**
-- Icon or illustration of a photo album / cloud
-- Headline: 「プリクラを、いつでもどこでも」 / "Your purikura, always with you"
-- Body: all upscaled photos are saved to a private cloud album; share to LINE, Instagram, and more - anytime
-- "Get started ->" button -> navigates to login
-
-### Login
-- PuriClear logo at top
-- "Sign in with Apple" button
+ 
 - "Sign in with Google" button
 - Soft pink / lavender background consistent with overall theme
 
