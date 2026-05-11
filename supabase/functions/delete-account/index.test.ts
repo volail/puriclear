@@ -17,7 +17,7 @@ function makeClients(userId: string): { anon: SupabaseClient; service: SupabaseC
   } as unknown as SupabaseClient
   const service = {
     storage: {
-      from: () => ({
+      from: (bucket: string) => ({
         list: async (_prefix: string) => ({ data: [{ name: 'file.jpg' }], error: null }),
         remove: async (_paths: string[]) => { ops.push('remove'); return { error: null } },
       }),
@@ -43,4 +43,5 @@ Deno.test('deletes storage, rows, and auth user on confirm', async () => {
   const res = await handler(makeReq(true), clients)
   assertEquals(res.status, 200)
   assertEquals(clients._ops.some((o) => o.startsWith('deleteUser')), true)
+  assertEquals(clients._ops.filter((o: string) => o === 'remove').length >= 2, true)
 })

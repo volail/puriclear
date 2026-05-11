@@ -27,11 +27,14 @@ export async function handler(req: Request, clients: Clients): Promise<Response>
 
   const svc = clients.service
 
-  await deleteStorageFolder(svc, 'originals', `originals/${userId}`)
-  await deleteStorageFolder(svc, 'upscaled', `upscaled/${userId}`)
-
-  // Delete all DB rows — cascade handles uploads, daily_usage, subscription_status, folders
-  await svc.from('users').delete().eq('id', userId)
+  try {
+    await deleteStorageFolder(svc, 'originals', userId)
+    await deleteStorageFolder(svc, 'upscaled', userId)
+    await svc.from('users').delete().eq('id', userId)
+  } catch (err) {
+    console.error('delete-account: pre-auth cleanup failed', err)
+    // proceed — best effort; auth user deletion still removes access
+  }
 
   const { error } = await svc.auth.admin.deleteUser(userId)
   if (error) {
