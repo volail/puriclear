@@ -195,5 +195,7 @@ async function failCleanup(
 }
 
 if (import.meta.main) {
+  const falApiKey = Deno.env.get('FAL_API_KEY')
+  if (!falApiKey) throw new Error('FAL_API_KEY is required')
   Deno.serve(async (req) => handler(req, { anon: createAnonClient(req), service: createServiceClient() }))
 }

@@ -50,7 +50,9 @@ export async function handler(
 
 if (import.meta.main) {
   const stripeSecret = Deno.env.get('STRIPE_SECRET_KEY')
+  const priceId = Deno.env.get('STRIPE_PRICE_ID')
   if (!stripeSecret) throw new Error('STRIPE_SECRET_KEY is required')
+  if (!priceId) throw new Error('STRIPE_PRICE_ID is required')
   const stripe = new Stripe(stripeSecret, { apiVersion: '2024-04-10' })
   Deno.serve(async (req) =>
     handler(req, { anon: createAnonClient(req), service: createServiceClient() }, stripe)

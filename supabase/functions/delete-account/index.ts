@@ -6,10 +6,18 @@ import { requireAuth, errorResponse, jsonResponse } from '../_shared/auth.ts'
 type Clients = { anon: SupabaseClient; service: SupabaseClient }
 
 async function deleteStorageFolder(svc: SupabaseClient, bucket: string, prefix: string) {
-  const { data: files } = await svc.storage.from(bucket).list(prefix)
-  if (files?.length) {
-    const paths = files.map((f: { name: string }) => `${prefix}/${f.name}`)
-    await svc.storage.from(bucket).remove(paths)
+  const { data: entries } = await svc.storage.from(bucket).list(prefix)
+  if (!entries?.length) return
+  for (const entry of entries) {
+    const subPrefix = `${prefix}/${entry.name}`
+    const { data: files } = await svc.storage.from(bucket).list(subPrefix)
+    if (files?.length) {
+      const paths = files.map((f: { name: string }) => `${subPrefix}/${f.name}`)
+      await svc.storage.from(bucket).remove(paths)
+    } else {
+      // entry itself is a file (not a folder)
+      await svc.storage.from(bucket).remove([subPrefix])
+    }
   }
 }
 
@@ -28,8 +36,8 @@ export async function handler(req: Request, clients: Clients): Promise<Response>
   const svc = clients.service
 
   try {
-    await deleteStorageFolder(svc, 'originals', userId)
-    await deleteStorageFolder(svc, 'upscaled', userId)
+    await deleteStorageFolder(svc, 'originals', `originals/${userId}`)
+    await deleteStorageFolder(svc, 'upscaled', `upscaled/${userId}`)
     await svc.from('users').delete().eq('id', userId)
   } catch (err) {
     console.error('delete-account: pre-auth cleanup failed', err)
