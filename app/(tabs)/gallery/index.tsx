@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react'
+import React, { useEffect, useState } from 'react'
 import { FlatList, RefreshControl } from 'react-native'
 import { View } from '@tamagui/core'
 import { useRouter } from 'expo-router'
@@ -12,9 +12,14 @@ export default function GalleryScreen() {
   const router = useRouter()
   const { uploads, loading, refresh, loadMore } = useGallery()
 
-  useEffect(() => { refresh() }, [])
+  const [initialised, setInitialised] = useState(false)
 
-  if (!loading && uploads.length === 0) return <EmptyGallery />
+  useEffect(() => {
+    setInitialised(false)
+    refresh().finally(() => setInitialised(true))
+  }, [refresh])
+
+  if (initialised && !loading && uploads.length === 0) return <EmptyGallery />
 
   return (
     <View flex={1} backgroundColor="$cream">

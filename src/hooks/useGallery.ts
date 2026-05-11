@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useRef } from 'react'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../contexts/AuthContext'
 
@@ -16,7 +16,7 @@ export function useGallery() {
   const [uploads, setUploads] = useState<UploadRow[]>([])
   const [loading, setLoading] = useState(false)
   const [hasMore, setHasMore] = useState(true)
-  const [page, setPage] = useState(0)
+  const nextPageRef = useRef(0)
 
   const fetchPage = useCallback(async (pageNum: number, reset = false) => {
     if (!session?.user?.id) return
@@ -39,17 +39,17 @@ export function useGallery() {
   }, [session?.user?.id])
 
   const refresh = useCallback(async () => {
-    setPage(0)
+    nextPageRef.current = 0
     setHasMore(true)
     await fetchPage(0, true)
   }, [fetchPage])
 
   const loadMore = useCallback(async () => {
     if (loading || !hasMore) return
-    const next = page + 1
-    setPage(next)
+    const next = nextPageRef.current + 1
+    nextPageRef.current = next
     await fetchPage(next)
-  }, [loading, hasMore, page, fetchPage])
+  }, [loading, hasMore, fetchPage])
 
   return { uploads, loading, hasMore, refresh, loadMore }
 }

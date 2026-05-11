@@ -13,9 +13,11 @@ export function PhotoCard({ upscaledPath, onPress }: Props) {
   const [url, setUrl] = useState<string | null>(null)
 
   useEffect(() => {
+    let cancelled = false
     getSignedUrl(upscaledPath)
-      .then(setUrl)
+      .then(u => { if (!cancelled) setUrl(u) })
       .catch(() => {})
+    return () => { cancelled = true }
   }, [upscaledPath])
 
   return (
