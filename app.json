@@ -25,6 +25,7 @@
       "bundleIdentifier": "com.puriclear.app"
     },
     "android": {
+      "package": "com.puriclear.app",
       "adaptiveIcon": { "foregroundImage": "./assets/adaptive-icon.png", "backgroundColor": "#FFF9FB" }
     },
     "web": { "bundler": "metro", "output": "server" },
