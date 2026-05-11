@@ -15,7 +15,9 @@
           "savePhotosPermission": "PuriClearはプリクラを保存するためにフォトライブラリへのアクセスが必要です。 / PuriClear needs access to your photo library to save upscaled purikura."
         }
       ],
-      ["expo-apple-authentication"]
+      [
+        "expo-apple-authentication"
+      ]
     ],
     "infoPlist": {
       "NSCameraUsageDescription": "カメラでプリクラを撮影します。 / Take a photo of your purikura print.",
@@ -26,9 +28,32 @@
     },
     "android": {
       "package": "com.puriclear.app",
-      "adaptiveIcon": { "foregroundImage": "./assets/adaptive-icon.png", "backgroundColor": "#FFF9FB" }
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#FFF9FB"
+      },
+      "permissions": [
+        "android.permission.RECORD_AUDIO",
+        "android.permission.READ_EXTERNAL_STORAGE",
+        "android.permission.WRITE_EXTERNAL_STORAGE",
+        "android.permission.READ_MEDIA_VISUAL_USER_SELECTED",
+        "android.permission.READ_MEDIA_IMAGES",
+        "android.permission.READ_MEDIA_VIDEO",
+        "android.permission.READ_MEDIA_AUDIO"
+      ]
     },
-    "web": { "bundler": "metro", "output": "server" },
-    "experiments": { "typedRoutes": true }
+    "web": {
+      "bundler": "metro",
+      "output": "server"
+    },
+    "experiments": {
+      "typedRoutes": true
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "0ff516a1-26f3-4de2-b24c-a460fb0163e0"
+      }
+    }
   }
 }
