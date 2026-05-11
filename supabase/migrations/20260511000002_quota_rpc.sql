@@ -4,7 +4,9 @@ create or replace function public.check_and_increment_free_quota(
   p_user_id  uuid,
   p_jst_date date
 ) returns boolean
-language plpgsql security definer as $$
+language plpgsql security definer
+set search_path = public, pg_temp
+as $$
 declare
   v_count int;
 begin
@@ -34,7 +36,9 @@ create or replace function public.decrement_free_quota(
   p_user_id  uuid,
   p_jst_date date
 ) returns void
-language plpgsql security definer as $$
+language plpgsql security definer
+set search_path = public, pg_temp
+as $$
 begin
   update public.daily_usage
   set count = greatest(0, count - 1)
@@ -46,7 +50,9 @@ $$;
 create or replace function public.decrement_pro_quota(
   p_user_id uuid
 ) returns void
-language plpgsql security definer as $$
+language plpgsql security definer
+set search_path = public, pg_temp
+as $$
 begin
   update public.subscription_status
   set monthly_count = greatest(0, monthly_count - 1)

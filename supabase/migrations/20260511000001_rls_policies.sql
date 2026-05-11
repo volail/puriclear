@@ -2,7 +2,8 @@
 create policy "users_select_own" on public.users
   for select using (auth.uid() = id);
 create policy "users_update_own" on public.users
-  for update using (auth.uid() = id);
+  for update using (auth.uid() = id)
+  with check (auth.uid() = id);
 
 -- uploads: read own rows only (writes go through edge functions)
 create policy "uploads_select_own" on public.uploads
