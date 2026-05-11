@@ -31,7 +31,12 @@ export async function handler(
   if (!imageBase64 || !mimeType) return errorResponse('imageBase64 and mimeType required')
   if (!ALLOWED_TYPES.has(mimeType)) return errorResponse('UNSUPPORTED_IMAGE_TYPE')
 
-  const imageBytes = Uint8Array.from(atob(imageBase64), (c) => c.charCodeAt(0))
+  let imageBytes: Uint8Array
+  try {
+    imageBytes = Uint8Array.from(atob(imageBase64), (c) => c.charCodeAt(0))
+  } catch {
+    return errorResponse('Invalid base64 image data')
+  }
   if (imageBytes.length > MAX_BYTES) return errorResponse('IMAGE_TOO_LARGE')
 
   const svc = clients.service
@@ -44,8 +49,13 @@ export async function handler(
     .single()
 
   if (subErr || !sub) {
-    await svc.from('subscription_status').insert({ user_id: userId, plan: 'free' })
-    sub = { plan: 'free', expires_at: null, monthly_count: 0, monthly_reset_date: null }
+    await svc.from('subscription_status').insert({
+      user_id: userId,
+      plan: 'free',
+      monthly_count: 0,
+      monthly_reset_date: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10),
+    })
+    sub = { plan: 'free', expires_at: null, monthly_count: 0, monthly_reset_date: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10) }
   }
 
   // 4. Downgrade expired pro
@@ -62,9 +72,7 @@ export async function handler(
       p_user_id: userId, p_jst_date: todayJST(),
     })
     if (!allowed) {
-      return new Response(JSON.stringify({ error: 'QUOTA_EXCEEDED' }), {
-        status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      })
+      return errorResponse('QUOTA_EXCEEDED', 429)
     }
     quotaReserved = true
   } else {
@@ -79,15 +87,17 @@ export async function handler(
         .eq('user_id', userId)
     }
     if (monthlyCount >= 1000) {
-      return new Response(JSON.stringify({ error: 'QUOTA_EXCEEDED' }), {
-        status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      })
+      return errorResponse('QUOTA_EXCEEDED', 429)
     }
     await svc.from('subscription_status').update({ monthly_count: monthlyCount + 1 }).eq('user_id', userId)
     quotaReserved = true
   }
 
-  const ext = mimeType === 'image/png' ? 'png' : 'jpg'
+  const EXT_MAP: Record<string, string> = {
+    'image/png': 'png', 'image/jpeg': 'jpg', 'image/webp': 'webp',
+    'image/heic': 'heic', 'image/heif': 'heif',
+  }
+  const ext = EXT_MAP[mimeType] ?? 'jpg'
   const uploadId = crypto.randomUUID()
   const originalPath = `originals/${userId}/${uploadId}/original.${ext}`
 
@@ -141,6 +151,10 @@ export async function handler(
 
   // 10. Fetch result and upload to upscaled bucket
   const resultRes = await fetchFn(resultUrl)
+  if (!resultRes.ok) {
+    await failCleanup(svc, uploadId, originalPath, plan, userId, quotaReserved)
+    return errorResponse('Failed to fetch AI result', 500)
+  }
   const resultBytes = new Uint8Array(await resultRes.arrayBuffer())
   const upscaledPath = `upscaled/${userId}/${uploadId}/upscaled.jpg`
 
@@ -156,7 +170,10 @@ export async function handler(
 
   // 12. Return signed URL
   const { data: outSigned } = await svc.storage.from('upscaled').createSignedUrl(upscaledPath, 3600)
-  return jsonResponse({ uploadId, signedUrl: outSigned?.signedUrl })
+  if (!outSigned?.signedUrl) {
+    return errorResponse('Failed to generate download URL', 500)
+  }
+  return jsonResponse({ uploadId, signedUrl: outSigned.signedUrl })
 }
 
 async function releaseQuota(svc: SupabaseClient, plan: string, userId: string, reserved: boolean) {

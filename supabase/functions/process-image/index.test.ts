@@ -28,7 +28,7 @@ function makeClients(opts: {
     expiresAt = null,
     quotaAllowed = true,
     monthlyCount = 0,
-    monthlyResetDate = '2027-01-01',
+    monthlyResetDate = '2099-01-01',
   } = opts
 
   const anonDb = {
