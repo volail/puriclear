@@ -22,15 +22,16 @@ function NavigationGuard({ children }: { children: React.ReactNode }) {
 
     const inAuth = segments[0] === '(auth)'
     const inTabs = segments[0] === '(tabs)'
+    const inModal = segments[0] === 'preview' || segments[0] === 'subscription'
 
     if (!hasSeenOnboarding) {
-      router.replace('/(auth)/onboarding')
+      if (!inAuth) router.replace('/(auth)/onboarding')
     } else if (!session && !inAuth) {
       router.replace('/(auth)/login')
-    } else if (session && !inTabs) {
+    } else if (session && !inTabs && !inModal) {
       router.replace('/(tabs)')
     }
-  }, [session, isLoading, hasSeenOnboarding, segments])
+  }, [session, isLoading, hasSeenOnboarding, segments, router])
 
   return <>{children}</>
 }
