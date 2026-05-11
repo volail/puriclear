@@ -6,6 +6,12 @@ PROVISION_USER_WEBHOOK_SECRET=1OimDWUGtEIwkpHxTZg4aPSvFfrXM3hYKsA2eLCNbq7VlJ8jdc
 REVENUECAT_WEBHOOK_SECRET=RlkudT5IUy67FKoiObfe4NQxXYsWABcCMa0DgqZjLE9GH2Pwzp1nmrh3vJtSV8
 FAL_API_KEY=6358c14e-ad8a-4c75-a24e-08405939656f:645fc877359885bea223dc5107db623f
 
+code recuperation stripe:
+eace-ueux-ktza-klwd-tpni
+stripe price id: price_1TVnYXKvifFaLTVRe7mEF6V6
+oauth web google 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
+
+
 1. Link Your Project
 From repo root:
 
