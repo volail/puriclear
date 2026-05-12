@@ -5,17 +5,33 @@ import { getSignedUrl } from '../lib/signedUrls'
 
 type Props = {
   upscaledPath: string
+  thumbnailPath: string | null
   onPress: () => void
 }
 
-export function PhotoCard({ upscaledPath, onPress }: Props) {
+export function PhotoCard({ upscaledPath, thumbnailPath, onPress }: Props) {
   const [url, setUrl] = useState<string | null>(null)
-
   useEffect(() => {
     let cancelled = false
-    getSignedUrl(upscaledPath, 400).then(u => { if (!cancelled) setUrl(u) }).catch(() => {})
+    async function load() {
+      if (thumbnailPath) {
+        try {
+          const u = await getSignedUrl(thumbnailPath)
+          if (!cancelled) { setUrl(u); return }
+        } catch (e) {
+          console.warn('[PhotoCard] thumbnail failed, falling back to upscaled', e)
+        }
+      }
+      try {
+        const u = await getSignedUrl(upscaledPath)
+        if (!cancelled) setUrl(u)
+      } catch (e) {
+        console.error('[PhotoCard] upscaled also failed', e)
+      }
+    }
+    load()
     return () => { cancelled = true }
-  }, [upscaledPath])
+  }, [thumbnailPath, upscaledPath])
 
   return (
     <TouchableOpacity onPress={onPress} style={styles.container} activeOpacity={0.8}>

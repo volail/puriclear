@@ -51,7 +51,8 @@
     "deleteConfirmTitle": "Delete Photo",
     "deleteConfirmMessage": "Delete this photo? This cannot be undone.",
     "saveSuccess": "Saved to photo library",
-    "saveDenied": "Photo library access denied"
+    "saveDenied": "Photo library access denied",
+    "processingBanner": "Enhancing your photo… this usually takes 1–2 minutes."
   },
   "settings": {
     "title": "Settings",

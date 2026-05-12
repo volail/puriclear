@@ -51,6 +51,10 @@ function NavigationGuard({ children }: { children: React.ReactNode }) {
 }
 
 export default function RootLayout() {
+  const [mounted, setMounted] = useState(false)
+  useEffect(() => { setMounted(true) }, [])
+  if (Platform.OS === 'web' && !mounted) return null
+
   return (
     <TamaguiProvider config={tamaguiConfig}>
       <AuthProvider>

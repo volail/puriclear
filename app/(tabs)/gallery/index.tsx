@@ -33,6 +33,7 @@ export default function GalleryScreen() {
         renderItem={({ item }) => (
           <PhotoCard
             upscaledPath={item.upscaled_path}
+            thumbnailPath={item.thumbnail_path}
             onPress={() => router.push({ pathname: '/(tabs)/gallery/[id]', params: { id: item.id } })}
           />
         )}

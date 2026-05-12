@@ -8,7 +8,9 @@ import { invokeProcessImage } from '../src/lib/processImage'
 export default function Preview() {
   const { t } = useTranslation()
   const router = useRouter()
-  const { uri, mimeType } = useLocalSearchParams<{ uri: string; mimeType: string }>()
+  const params = useLocalSearchParams<{ uri: string | string[]; mimeType: string | string[] }>()
+  const uri = Array.isArray(params.uri) ? params.uri[0] : params.uri
+  const mimeType = Array.isArray(params.mimeType) ? params.mimeType[0] : params.mimeType
   const [processing, setProcessing] = useState(false)
 
   async function handleUpscale() {

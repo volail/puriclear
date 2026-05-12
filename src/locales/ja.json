@@ -52,7 +52,8 @@
     "deleteConfirmTitle": "写真を削除",
     "deleteConfirmMessage": "この写真を削除しますか？この操作は取り消せません。",
     "saveSuccess": "フォトライブラリに保存しました",
-    "saveDenied": "フォトライブラリへのアクセスが拒否されました"
+    "saveDenied": "フォトライブラリへのアクセスが拒否されました",
+    "processingBanner": "写真を高解像度化しています… 通常1〜2分かかります。"
   },
   "settings": {
     "title": "設定",

@@ -7,6 +7,7 @@ const PAGE_SIZE = 30
 export type UploadRow = {
   id: string
   upscaled_path: string
+  thumbnail_path: string | null
   created_at: string
   status: string
 }
@@ -25,7 +26,7 @@ export function useGallery() {
     const to = from + PAGE_SIZE - 1
     const { data, error } = await supabase
       .from('uploads')
-      .select('id, upscaled_path, created_at, status')
+      .select('id, upscaled_path, thumbnail_path, created_at, status')
       .eq('user_id', session.user.id)
       .eq('status', 'done')
       .order('created_at', { ascending: false })

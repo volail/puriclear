@@ -99,9 +99,7 @@ export async function handler(
   }
   const ext = EXT_MAP[mimeType] ?? 'jpg'
   const uploadId = crypto.randomUUID()
-  // Object paths within each bucket (no bucket-name prefix)
   const originalObjPath = `${userId}/${uploadId}/original.${ext}`
-  // Logical paths stored in DB (prefixed with bucket name so getSignedUrl can route them)
   const originalPath = `originals/${originalObjPath}`
 
   // 6. Upload original
@@ -131,15 +129,21 @@ export async function handler(
   }
 
   // 9. Call fal.ai aura-sr
-  const falRes = await fetchFn('https://fal.run/fal-ai/aura-sr', {
-    method: 'POST',
-    headers: {
-      Authorization: `Key ${Deno.env.get('FAL_API_KEY') ?? ''}`,
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({ image_url: signed.signedUrl, upscaling_factor: 4, overlapping_tiles: true }),
-    signal: AbortSignal.timeout(60000),
-  })
+  let falRes: Response
+  try {
+    falRes = await fetchFn('https://fal.run/fal-ai/aura-sr', {
+      method: 'POST',
+      headers: {
+        Authorization: `Key ${Deno.env.get('FAL_API_KEY') ?? ''}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ image_url: signed.signedUrl, upscaling_factor: 2, overlapping_tiles: false }),
+      signal: AbortSignal.timeout(180000),
+    })
+  } catch (e) {
+    await failCleanup(svc, uploadId, originalObjPath, plan, userId, quotaReserved)
+    return errorResponse(`AI processing timed out or failed: ${e}`, 500)
+  }
   if (!falRes.ok) {
     const falErr = await falRes.text().catch(() => '(unreadable)')
     console.error('[process-image] fal.ai error', falRes.status, falErr)
@@ -171,16 +175,38 @@ export async function handler(
     return errorResponse('Failed to store upscaled image', 500)
   }
 
-  // 11. Mark done, delete original
-  await svc.from('uploads').update({ status: 'done', upscaled_path: upscaledPath }).eq('id', uploadId)
+  // 11. Generate 20px thumbnail using SDK transform (encodes resize in the signed token)
+  let thumbnailPath: string | null = null
+  try {
+    const { data: thumbSigned } = await svc.storage.from('upscaled').createSignedUrl(
+      upscaledObjPath, 60, { transform: { width: 400, resize: 'contain' } }
+    )
+    if (thumbSigned?.signedUrl) {
+      const thumbRes = await fetchFn(thumbSigned.signedUrl, { signal: AbortSignal.timeout(15000) })
+      if (thumbRes.ok) {
+        const thumbBytes = new Uint8Array(await thumbRes.arrayBuffer())
+        const thumbObjPath = `${userId}/${uploadId}/thumb.jpg`
+        const { error: thumbErr } = await svc.storage.from('upscaled').upload(thumbObjPath, thumbBytes, { contentType: 'image/jpeg' })
+        if (!thumbErr) thumbnailPath = `upscaled/${thumbObjPath}`
+        else console.error('[process-image] thumbnail upload failed', thumbErr)
+      } else {
+        console.error('[process-image] thumbnail fetch', thumbRes.status, await thumbRes.text().catch(() => ''))
+      }
+    }
+  } catch (e) {
+    console.error('[process-image] thumbnail generation failed', e)
+  }
+
+  // 12. Mark done, delete original
+  await svc.from('uploads').update({ status: 'done', upscaled_path: upscaledPath, thumbnail_path: thumbnailPath }).eq('id', uploadId)
   await svc.storage.from('originals').remove([originalObjPath])
 
-  // 12. Return signed URL
+  // 13. Return signed URL
   const { data: outSigned } = await svc.storage.from('upscaled').createSignedUrl(upscaledObjPath, 3600)
   if (!outSigned?.signedUrl) {
     return errorResponse('Failed to generate download URL', 500)
   }
-  return jsonResponse({ uploadId, signedUrl: outSigned.signedUrl })
+  return jsonResponse({ uploadId, signedUrl: outSigned.signedUrl, thumbnailPath })
 }
 
 async function releaseQuota(svc: SupabaseClient, plan: string, userId: string, reserved: boolean) {
