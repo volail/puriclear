@@ -137,7 +137,7 @@ export async function handler(
         Authorization: `Key ${Deno.env.get('FAL_API_KEY') ?? ''}`,
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ image_url: signed.signedUrl, scale: 2 }),
+      body: JSON.stringify({ image_url: signed.signedUrl, scale: 2, model: 'RealESRGAN_x2plus', face: true, output_format: 'jpeg' }),
       signal: AbortSignal.timeout(90_000),
     })
   } catch (e) {
