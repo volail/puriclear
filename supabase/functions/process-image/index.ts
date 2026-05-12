@@ -128,35 +128,58 @@ export async function handler(
     return errorResponse('Failed to sign original URL', 500)
   }
 
-  // 9. Call fal.ai clarity-upscaler
-  let falRes: Response
+  // 9a. Call fal.ai ESRGAN (general upscale)
+  let esrganRes: Response
   try {
-    falRes = await fetchFn('https://fal.run/fal-ai/clarity-upscaler', {
+    esrganRes = await fetchFn('https://fal.run/fal-ai/esrgan', {
       method: 'POST',
       headers: {
         Authorization: `Key ${Deno.env.get('FAL_API_KEY') ?? ''}`,
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ image_url: signed.signedUrl, scale: 2, creativity: 0.35, resemblance: 0.6, dynamic: 6 }),
-      signal: AbortSignal.timeout(180000),
+      body: JSON.stringify({ image_url: signed.signedUrl, scale: 2 }),
+      signal: AbortSignal.timeout(90_000),
     })
   } catch (e) {
     await failCleanup(svc, uploadId, originalObjPath, plan, userId, quotaReserved)
     return errorResponse(`AI processing timed out or failed: ${e}`, 500)
   }
-  if (!falRes.ok) {
-    const falErr = await falRes.text().catch(() => '(unreadable)')
-    console.error('[process-image] fal.ai error', falRes.status, falErr)
+  if (!esrganRes.ok) {
+    const esrganErr = await esrganRes.text().catch(() => '(unreadable)')
+    console.error('[process-image] esrgan error', esrganRes.status, esrganErr)
     await failCleanup(svc, uploadId, originalObjPath, plan, userId, quotaReserved)
-    return errorResponse(`AI processing failed: ${falRes.status} ${falErr}`, 500)
+    return errorResponse(`AI processing failed: ${esrganRes.status} ${esrganErr}`, 500)
   }
 
-  const falData = await falRes.json()
-  const resultUrl: string = falData.image?.url ?? falData.images?.[0]?.url
+  const esrganData = await esrganRes.json()
+  let resultUrl: string = esrganData.image?.url ?? esrganData.images?.[0]?.url
   if (!resultUrl) {
-    console.error('[process-image] unexpected fal.ai response shape', JSON.stringify(falData))
+    console.error('[process-image] unexpected esrgan response shape', JSON.stringify(esrganData))
     await failCleanup(svc, uploadId, originalObjPath, plan, userId, quotaReserved)
     return errorResponse('AI returned no image', 500)
+  }
+
+  // 9b. Call fal.ai face restoration (graceful fallback to esrgan result on failure)
+  try {
+    const faceRes = await fetchFn('https://fal.run/fal-ai/face-restoration', {
+      method: 'POST',
+      headers: {
+        Authorization: `Key ${Deno.env.get('FAL_API_KEY') ?? ''}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ image_url: resultUrl }),
+      signal: AbortSignal.timeout(90_000),
+    })
+    if (faceRes.ok) {
+      const faceData = await faceRes.json()
+      const faceUrl: string = faceData.image?.url ?? faceData.images?.[0]?.url
+      if (faceUrl) resultUrl = faceUrl
+      else console.warn('[process-image] face restoration returned no image url, using esrgan result')
+    } else {
+      console.warn('[process-image] face restoration failed', faceRes.status, await faceRes.text().catch(() => '(unreadable)'))
+    }
+  } catch (e) {
+    console.warn('[process-image] face restoration timed out or threw, using esrgan result', e)
   }
 
   // 10. Fetch result and upload to upscaled bucket

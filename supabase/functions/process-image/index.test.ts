@@ -74,16 +74,17 @@ function makeClients(opts: {
   return { anon: anonDb, service: serviceDb }
 }
 
-function makeFetch(success = true, capturedUrls: string[] = []): typeof fetch {
+function makeFetch(success = true, capturedUrls: string[] = [], failUrls: string[] = []): typeof fetch {
   return async (input: string | URL | Request) => {
     const url = typeof input === 'string' ? input : input instanceof URL ? input.href : input.url
     capturedUrls.push(url)
+    const shouldFail = !success || failUrls.some(f => url.includes(f))
     return {
-      ok: success,
-      status: success ? 200 : 500,
+      ok: !shouldFail,
+      status: shouldFail ? 500 : 200,
       arrayBuffer: async () => new ArrayBuffer(100),
       json: async () => ({ image: { url: 'https://fal.ai/result.jpg' } }),
-      text: async () => 'fal error body',
+      text: async () => shouldFail ? 'error body' : 'ok',
     } as Response
   }
 }
@@ -128,11 +129,20 @@ Deno.test('returns 500 when fal.ai fails', async () => {
   assertEquals(res.status, 500)
 })
 
-Deno.test('calls clarity-upscaler endpoint', async () => {
+Deno.test('calls esrgan then face-restoration endpoints in order', async () => {
   const calledUrls: string[] = []
   const clients = makeClients({ plan: 'free', quotaAllowed: true })
   const res = await handler(makeReq(), clients, makeFetch(true, calledUrls))
   assertEquals(res.status, 200)
-  const falCall = calledUrls.find(u => u.includes('fal.run'))
-  assertEquals(falCall, 'https://fal.run/fal-ai/clarity-upscaler')
+  const falCalls = calledUrls.filter(u => u.includes('fal.run'))
+  assertEquals(falCalls[0], 'https://fal.run/fal-ai/esrgan')
+  assertEquals(falCalls[1], 'https://fal.run/fal-ai/face-restoration')
+})
+
+Deno.test('falls back to esrgan result when face restoration fails', async () => {
+  const clients = makeClients({ plan: 'free', quotaAllowed: true })
+  const res = await handler(makeReq(), clients, makeFetch(true, [], ['face-restoration']))
+  assertEquals(res.status, 200)
+  const body = await res.json()
+  assertEquals(typeof body.signedUrl, 'string')
 })
