@@ -1,5 +1,5 @@
 import { Platform, Image as RNImage } from 'react-native'
-import * as FileSystem from 'expo-file-system'
+import { File } from 'expo-file-system'
 import { supabase } from './supabase'
 
 const MAX_INPUT_DIM = 800
@@ -19,9 +19,7 @@ export async function invokeProcessImage(uri: string, mimeType: string): Promise
     finalMimeType = resized.mimeType
   } else {
     const resized = await resizeMobile(uri, mimeType, MAX_INPUT_DIM)
-    base64 = await FileSystem.readAsStringAsync(resized.uri, {
-      encoding: FileSystem.EncodingType.Base64,
-    })
+    base64 = await new File(resized.uri).base64()
     finalMimeType = resized.mimeType
   }
 

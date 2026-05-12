@@ -11,7 +11,6 @@ eace-ueux-ktza-klwd-tpni
 stripe price id: price_1TVnYXKvifFaLTVRe7mEF6V6
 oauth web google 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
 
-
 1. Link Your Project
 From repo root:
 

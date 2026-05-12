@@ -27,7 +27,7 @@ export default function Preview() {
       if (err.message === 'QUOTA_EXCEEDED') {
         router.replace('/subscription')
       } else {
-        Alert.alert(t('errors.processingFailed'))
+        Alert.alert(t('errors.processingFailed'), err?.message ?? '')
       }
     } finally {
       setProcessing(false)
