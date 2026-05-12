@@ -13,7 +13,12 @@
     },
     "plugins": [
       "expo-router",
-      "expo-image-picker",
+      [
+        "expo-image-picker",
+        {
+          "cameraPermission": "カメラでプリクラを撮影します。 / Take a photo of your purikura print."
+        }
+      ],
       [
         "expo-media-library",
         {
@@ -25,12 +30,12 @@
         "expo-apple-authentication"
       ]
     ],
-    "infoPlist": {
-      "NSCameraUsageDescription": "カメラでプリクラを撮影します。 / Take a photo of your purikura print.",
-      "NSPhotoLibraryUsageDescription": "プリクラをフォトライブラリからインポートします。 / Import purikura from your photo library."
-    },
     "ios": {
-      "bundleIdentifier": "com.puriclear.app"
+      "bundleIdentifier": "com.puriclear.app",
+      "infoPlist": {
+        "NSCameraUsageDescription": "カメラでプリクラを撮影します。 / Take a photo of your purikura print.",
+        "NSPhotoLibraryUsageDescription": "プリクラをフォトライブラリからインポートします。 / Import purikura from your photo library."
+      }
     },
     "android": {
       "package": "com.puriclear.app",
@@ -39,6 +44,7 @@
         "backgroundColor": "#FFF9FB"
       },
       "permissions": [
+        "android.permission.CAMERA",
         "android.permission.READ_MEDIA_VISUAL_USER_SELECTED",
         "android.permission.READ_MEDIA_IMAGES"
       ]
