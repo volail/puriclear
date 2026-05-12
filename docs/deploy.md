@@ -1,5 +1,9 @@
 For this backend, you need to deploy/configure these pieces, roughly in this order.
 
+Web app (Vercel):
+  URL: https://dist-teal-two-23.vercel.app
+  Deploy: npx expo export --platform web && npx vercel --prod dist
+
 Usefull keys:
 YOUR_PROJECT_REF=zxvelrjrogearuovdamc
 PROVISION_USER_WEBHOOK_SECRET=1OimDWUGtEIwkpHxTZg4aPSvFfrXM3hYKsA2eLCNbq7VlJ8jdcuy0nQz9RB5o6

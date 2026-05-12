@@ -1,12 +1,130 @@
-import React, { useEffect, useRef } from 'react'
-import { Animated, Image, PanResponder, Platform } from 'react-native'
+import React, { useEffect, useRef, useState } from 'react'
+import { Animated, Image, PanResponder, Platform, View } from 'react-native'
 
 interface Props {
   uri: string
   style?: object
 }
 
-export function ZoomableImage({ uri, style }: Props) {
+// ─── Web ─────────────────────────────────────────────────────────────────────
+
+function WebZoomableImage({ uri, style }: Props) {
+  const [transform, setTransform] = useState({ s: 1, x: 0, y: 0 })
+  const t = useRef({ s: 1, x: 0, y: 0 })
+  const containerRef = useRef<any>(null)
+  const imageNativeSize = useRef({ width: 0, height: 0 })
+  const isDragging = useRef(false)
+  const dragStart = useRef({ mx: 0, my: 0, tx: 0, ty: 0 })
+
+  useEffect(() => {
+    Image.getSize(uri, (w, h) => { imageNativeSize.current = { width: w, height: h } })
+  }, [uri])
+
+  function computeMaxTranslate(s: number) {
+    const el = containerRef.current
+    if (!el) return { x: 0, y: 0 }
+    const cw = el.offsetWidth as number
+    const ch = el.offsetHeight as number
+    const { width: iw, height: ih } = imageNativeSize.current
+    let rw = cw, rh = ch
+    if (iw > 0 && ih > 0) {
+      const ratio = Math.min(cw / iw, ch / ih)
+      rw = iw * ratio
+      rh = ih * ratio
+    }
+    return {
+      x: Math.max(0, (rw * s - cw) / 2),
+      y: Math.max(0, (rh * s - ch) / 2),
+    }
+  }
+
+  function clamp(x: number, y: number, s: number) {
+    const max = computeMaxTranslate(s)
+    return {
+      x: Math.min(max.x, Math.max(-max.x, x)),
+      y: Math.min(max.y, Math.max(-max.y, y)),
+    }
+  }
+
+  function handleWheel(e: any) {
+    e.preventDefault()
+    const el = containerRef.current
+    if (!el) return
+    const rect = el.getBoundingClientRect()
+    const { s, x, y } = t.current
+
+    const factor = e.deltaY < 0 ? 1.05 : 1 / 1.05
+    const newS = Math.min(Math.max(s * factor, 1), 5)
+
+    // Mouse position relative to container center
+    const mx = e.clientX - rect.left - rect.width / 2
+    const my = e.clientY - rect.top - rect.height / 2
+
+    // Keep the point under the cursor fixed
+    const contentX = (mx - x) / s
+    const contentY = (my - y) / s
+    const rawX = mx - contentX * newS
+    const rawY = my - contentY * newS
+
+    const clamped = clamp(rawX, rawY, newS)
+    t.current = { s: newS, ...clamped }
+    setTransform({ s: newS, ...clamped })
+  }
+
+  function handleMouseDown(e: any) {
+    if (t.current.s <= 1) return
+    isDragging.current = true
+    dragStart.current = { mx: e.clientX, my: e.clientY, tx: t.current.x, ty: t.current.y }
+  }
+
+  function handleMouseMove(e: any) {
+    if (!isDragging.current) return
+    const { mx, my, tx, ty } = dragStart.current
+    const clamped = clamp(tx + (e.clientX - mx), ty + (e.clientY - my), t.current.s)
+    t.current = { ...t.current, ...clamped }
+    setTransform({ ...t.current })
+  }
+
+  function handleMouseUp() {
+    isDragging.current = false
+  }
+
+  useEffect(() => {
+    const el = containerRef.current
+    if (!el) return
+    el.addEventListener('wheel', handleWheel, { passive: false })
+    return () => el.removeEventListener('wheel', handleWheel)
+  }, [])
+
+  const cursor = transform.s > 1 ? (isDragging.current ? 'grabbing' : 'grab') : 'default'
+
+  return (
+    <View
+      ref={containerRef}
+      style={[{ flex: 1, overflow: 'hidden' } as any, style]}
+      onMouseDown={handleMouseDown as any}
+      onMouseMove={handleMouseMove as any}
+      onMouseUp={handleMouseUp as any}
+      onMouseLeave={handleMouseUp as any}
+    >
+      <Image
+        source={{ uri }}
+        style={[
+          { flex: 1, resizeMode: 'contain' } as any,
+          {
+            transform: [{ scale: transform.s }, { translateX: transform.x }, { translateY: transform.y }],
+            cursor,
+            userSelect: 'none',
+          },
+        ]}
+      />
+    </View>
+  )
+}
+
+// ─── Native ───────────────────────────────────────────────────────────────────
+
+function NativeZoomableImage({ uri, style }: Props) {
   const scale = useRef(new Animated.Value(1)).current
   const translateX = useRef(new Animated.Value(0)).current
   const translateY = useRef(new Animated.Value(0)).current
@@ -20,14 +138,9 @@ export function ZoomableImage({ uri, style }: Props) {
   const imageNativeSize = useRef({ width: 0, height: 0 })
 
   useEffect(() => {
-    if (Platform.OS !== 'web') {
-      Image.getSize(uri, (w, h) => {
-        imageNativeSize.current = { width: w, height: h }
-      })
-    }
+    Image.getSize(uri, (w, h) => { imageNativeSize.current = { width: w, height: h } })
   }, [uri])
 
-  // Actual rendered size of the image inside the container (resizeMode: contain)
   function getRenderedSize() {
     const { width: cw, height: ch } = containerSize.current
     const { width: iw, height: ih } = imageNativeSize.current
@@ -36,22 +149,15 @@ export function ZoomableImage({ uri, style }: Props) {
     return { width: iw * ratio, height: ih * ratio }
   }
 
-  // Max translation before image edge goes past container edge
-  function maxTranslate(s: number) {
+  function clamp(tx: number, ty: number, s: number) {
     const { width: cw, height: ch } = containerSize.current
     const rendered = getRenderedSize()
     if (!rendered) return { x: 0, y: 0 }
+    const maxX = Math.max(0, (rendered.width * s - cw) / 2)
+    const maxY = Math.max(0, (rendered.height * s - ch) / 2)
     return {
-      x: Math.max(0, (rendered.width * s - cw) / 2),
-      y: Math.max(0, (rendered.height * s - ch) / 2),
-    }
-  }
-
-  function clamp(tx: number, ty: number, s: number) {
-    const max = maxTranslate(s)
-    return {
-      x: Math.min(max.x, Math.max(-max.x, tx)),
-      y: Math.min(max.y, Math.max(-max.y, ty)),
+      x: Math.min(maxX, Math.max(-maxX, tx)),
+      y: Math.min(maxY, Math.max(-maxY, ty)),
     }
   }
 
@@ -113,10 +219,6 @@ export function ZoomableImage({ uri, style }: Props) {
     })
   ).current
 
-  if (Platform.OS === 'web') {
-    return <Image source={{ uri }} style={[{ flex: 1, resizeMode: 'contain' } as any, style]} />
-  }
-
   return (
     <Animated.View
       style={[{ flex: 1, overflow: 'hidden' }, style]}
@@ -134,4 +236,10 @@ export function ZoomableImage({ uri, style }: Props) {
       />
     </Animated.View>
   )
+}
+
+// ─── Export ───────────────────────────────────────────────────────────────────
+
+export function ZoomableImage(props: Props) {
+  return Platform.OS === 'web' ? <WebZoomableImage {...props} /> : <NativeZoomableImage {...props} />
 }
