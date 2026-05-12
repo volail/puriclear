@@ -4,7 +4,10 @@ import { useLocalSearchParams, useRouter } from 'expo-router'
 import { useTranslation } from 'react-i18next'
 import { LoadingOverlay } from '../src/components/LoadingOverlay'
 import { ZoomableImage } from '../src/components/ZoomableImage'
+import { BeforeAfterSlider } from '../src/components/BeforeAfterSlider'
 import { invokeProcessImage } from '../src/lib/processImage'
+
+type Result = { uploadId: string; signedUrl: string }
 
 export default function Preview() {
   const { t } = useTranslation()
@@ -13,17 +16,15 @@ export default function Preview() {
   const uri = Array.isArray(params.uri) ? params.uri[0] : params.uri
   const mimeType = Array.isArray(params.mimeType) ? params.mimeType[0] : params.mimeType
   const [processing, setProcessing] = useState(false)
+  const [result, setResult] = useState<Result | null>(null)
 
   async function handleUpscale() {
     if (!uri || typeof uri !== 'string') return
     const mime = typeof mimeType === 'string' ? mimeType : 'image/jpeg'
     try {
       setProcessing(true)
-      const result = await invokeProcessImage(uri, mime)
-      router.replace({
-        pathname: '/(tabs)/gallery/[id]',
-        params: { id: result.uploadId, signedUrl: result.signedUrl },
-      })
+      const res = await invokeProcessImage(uri, mime)
+      setResult(res)
     } catch (err: any) {
       if (err.message === 'QUOTA_EXCEEDED') {
         router.replace('/subscription')
@@ -35,6 +36,32 @@ export default function Preview() {
     }
   }
 
+  function handleDone() {
+    if (result) {
+      router.replace({
+        pathname: '/(tabs)/gallery/[id]',
+        params: { id: result.uploadId, signedUrl: result.signedUrl },
+      })
+    } else {
+      router.back()
+    }
+  }
+
+  // Result view: before/after slider
+  if (result && uri && typeof uri === 'string') {
+    return (
+      <View style={styles.container}>
+        <BeforeAfterSlider beforeUri={uri} afterUri={result.signedUrl} />
+        <View style={styles.actions}>
+          <TouchableOpacity onPress={handleDone} style={[styles.button, styles.upscaleButton]}>
+            <Text style={styles.upscaleText}>{t('common.done')}</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+    )
+  }
+
+  // Default view: original image + upscale button
   return (
     <View style={styles.container}>
       {processing && <LoadingOverlay />}
