@@ -1,5 +1,6 @@
 import React, { useState } from 'react'
 import { View, TouchableOpacity, Text, StyleSheet, Alert } from 'react-native'
+import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useLocalSearchParams, useRouter } from 'expo-router'
 import { useTranslation } from 'react-i18next'
 import { LoadingOverlay } from '../src/components/LoadingOverlay'
@@ -15,6 +16,7 @@ export default function Preview() {
   const params = useLocalSearchParams<{ uri: string | string[]; mimeType: string | string[] }>()
   const uri = Array.isArray(params.uri) ? params.uri[0] : params.uri
   const mimeType = Array.isArray(params.mimeType) ? params.mimeType[0] : params.mimeType
+  const insets = useSafeAreaInsets()
   const [processing, setProcessing] = useState(false)
   const [result, setResult] = useState<Result | null>(null)
 
@@ -47,12 +49,15 @@ export default function Preview() {
     }
   }
 
+  const safeTop = { paddingTop: insets.top }
+  const safeBottom = { paddingBottom: insets.bottom }
+
   // Result view: before/after slider
   if (result && uri && typeof uri === 'string') {
     return (
-      <View style={styles.container}>
+      <View style={[styles.container, safeTop]}>
         <BeforeAfterSlider beforeUri={uri} afterUri={result.signedUrl} />
-        <View style={styles.actions}>
+        <View style={[styles.actions, safeBottom]}>
           <TouchableOpacity onPress={handleDone} style={[styles.button, styles.upscaleButton]}>
             <Text style={styles.upscaleText}>{t('common.done')}</Text>
           </TouchableOpacity>
@@ -63,10 +68,10 @@ export default function Preview() {
 
   // Default view: original image + upscale button
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, safeTop]}>
       {processing && <LoadingOverlay />}
       {uri && <ZoomableImage uri={uri} style={styles.image} />}
-      <View style={styles.actions}>
+      <View style={[styles.actions, safeBottom]}>
         <TouchableOpacity
           onPress={handleUpscale}
           disabled={processing || !uri || typeof uri !== 'string'}
