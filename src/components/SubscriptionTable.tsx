@@ -1,5 +1,6 @@
 import React from 'react'
-import { YStack, XStack, Text } from '@tamagui/core'
+import { Text } from '@tamagui/core'
+import { YStack, XStack } from '@tamagui/stacks'
 import { useTranslation } from 'react-i18next'
 
 export function SubscriptionTable() {

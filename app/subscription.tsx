@@ -1,5 +1,7 @@
 import React, { useState } from 'react'
-import { YStack, Text, Button } from '@tamagui/core'
+import { Text } from '@tamagui/core'
+import { YStack } from '@tamagui/stacks'
+import { Button } from '@tamagui/button'
 import { ScrollView, Alert, Platform, Linking } from 'react-native'
 import { useRouter } from 'expo-router'
 import { useTranslation } from 'react-i18next'

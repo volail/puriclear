@@ -21,7 +21,16 @@ export async function invokeProcessImage(uri: string, mimeType: string): Promise
     body: { imageBase64: base64, mimeType },
   })
 
-  if (error) throw new Error(error.message ?? 'PROCESSING_FAILED')
+  if (error) {
+    let detail = error.message ?? 'PROCESSING_FAILED'
+    try {
+      // FunctionsHttpError exposes the raw response on .context
+      const body = await (error as any).context?.json?.()
+      if (body?.error) detail = body.error
+    } catch {}
+    console.error('[processImage] function error:', detail)
+    throw new Error(detail)
+  }
   if (!data?.uploadId || !data?.signedUrl) throw new Error('PROCESSING_FAILED')
   return data as ProcessResult
 }

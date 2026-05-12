@@ -138,13 +138,16 @@ export async function handler(
     signal: AbortSignal.timeout(60000),
   })
   if (!falRes.ok) {
+    const falErr = await falRes.text().catch(() => '(unreadable)')
+    console.error('[process-image] fal.ai error', falRes.status, falErr)
     await failCleanup(svc, uploadId, originalPath, plan, userId, quotaReserved)
-    return errorResponse('AI processing failed', 500)
+    return errorResponse(`AI processing failed: ${falRes.status} ${falErr}`, 500)
   }
 
   const falData = await falRes.json()
-  const resultUrl: string = falData.images?.[0]?.url
+  const resultUrl: string = falData.image?.url ?? falData.images?.[0]?.url
   if (!resultUrl) {
+    console.error('[process-image] unexpected fal.ai response shape', JSON.stringify(falData))
     await failCleanup(svc, uploadId, originalPath, plan, userId, quotaReserved)
     return errorResponse('AI returned no image', 500)
   }

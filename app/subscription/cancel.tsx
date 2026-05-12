@@ -1,5 +1,7 @@
 import React from 'react'
-import { YStack, Text, Button } from '@tamagui/core'
+import { Text } from '@tamagui/core'
+import { YStack } from '@tamagui/stacks'
+import { Button } from '@tamagui/button'
 import { useRouter } from 'expo-router'
 import { useTranslation } from 'react-i18next'
 

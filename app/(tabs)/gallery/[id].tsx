@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import { Image, Alert } from 'react-native'
-import { YStack, XStack, Button } from '@tamagui/core'
+import { YStack, XStack } from '@tamagui/stacks'
+import { Button } from '@tamagui/button'
 import { useLocalSearchParams, useRouter } from 'expo-router'
 import { useTranslation } from 'react-i18next'
 import { supabase } from '../../../src/lib/supabase'
