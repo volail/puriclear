@@ -26,9 +26,13 @@ export async function handler(req: Request, clients: Clients): Promise<Response>
   if (error || !data) return errorResponse('Upload not found', 404)
   if (!data.upscaled_path) return errorResponse('Upload not ready', 400)
 
+  const objPath = data.upscaled_path.startsWith('upscaled/')
+    ? data.upscaled_path.slice('upscaled/'.length)
+    : data.upscaled_path
+
   const { data: signed, error: signErr } = await clients.service.storage
     .from('upscaled')
-    .createSignedUrl(data.upscaled_path, 3600)
+    .createSignedUrl(objPath, 3600)
 
   if (signErr || !signed?.signedUrl) return errorResponse('Failed to generate URL', 500)
   return jsonResponse({ signedUrl: signed.signedUrl })

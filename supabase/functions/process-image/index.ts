@@ -99,10 +99,13 @@ export async function handler(
   }
   const ext = EXT_MAP[mimeType] ?? 'jpg'
   const uploadId = crypto.randomUUID()
-  const originalPath = `originals/${userId}/${uploadId}/original.${ext}`
+  // Object paths within each bucket (no bucket-name prefix)
+  const originalObjPath = `${userId}/${uploadId}/original.${ext}`
+  // Logical paths stored in DB (prefixed with bucket name so getSignedUrl can route them)
+  const originalPath = `originals/${originalObjPath}`
 
   // 6. Upload original
-  const { error: origErr } = await svc.storage.from('originals').upload(originalPath, imageBytes, { contentType: mimeType })
+  const { error: origErr } = await svc.storage.from('originals').upload(originalObjPath, imageBytes, { contentType: mimeType })
   if (origErr) {
     await releaseQuota(svc, plan, userId, quotaReserved)
     return errorResponse('Failed to upload original', 500)
@@ -115,15 +118,15 @@ export async function handler(
     .select('id')
     .single()
   if (rowErr || !row) {
-    await svc.storage.from('originals').remove([originalPath])
+    await svc.storage.from('originals').remove([originalObjPath])
     await releaseQuota(svc, plan, userId, quotaReserved)
     return errorResponse('Failed to create upload record', 500)
   }
 
   // 8. Signed URL for fal.ai to fetch the original
-  const { data: signed } = await svc.storage.from('originals').createSignedUrl(originalPath, 300)
+  const { data: signed } = await svc.storage.from('originals').createSignedUrl(originalObjPath, 300)
   if (!signed?.signedUrl) {
-    await failCleanup(svc, uploadId, originalPath, plan, userId, quotaReserved)
+    await failCleanup(svc, uploadId, originalObjPath, plan, userId, quotaReserved)
     return errorResponse('Failed to sign original URL', 500)
   }
 
@@ -140,7 +143,7 @@ export async function handler(
   if (!falRes.ok) {
     const falErr = await falRes.text().catch(() => '(unreadable)')
     console.error('[process-image] fal.ai error', falRes.status, falErr)
-    await failCleanup(svc, uploadId, originalPath, plan, userId, quotaReserved)
+    await failCleanup(svc, uploadId, originalObjPath, plan, userId, quotaReserved)
     return errorResponse(`AI processing failed: ${falRes.status} ${falErr}`, 500)
   }
 
@@ -148,31 +151,32 @@ export async function handler(
   const resultUrl: string = falData.image?.url ?? falData.images?.[0]?.url
   if (!resultUrl) {
     console.error('[process-image] unexpected fal.ai response shape', JSON.stringify(falData))
-    await failCleanup(svc, uploadId, originalPath, plan, userId, quotaReserved)
+    await failCleanup(svc, uploadId, originalObjPath, plan, userId, quotaReserved)
     return errorResponse('AI returned no image', 500)
   }
 
   // 10. Fetch result and upload to upscaled bucket
   const resultRes = await fetchFn(resultUrl)
   if (!resultRes.ok) {
-    await failCleanup(svc, uploadId, originalPath, plan, userId, quotaReserved)
+    await failCleanup(svc, uploadId, originalObjPath, plan, userId, quotaReserved)
     return errorResponse('Failed to fetch AI result', 500)
   }
   const resultBytes = new Uint8Array(await resultRes.arrayBuffer())
-  const upscaledPath = `upscaled/${userId}/${uploadId}/upscaled.jpg`
+  const upscaledObjPath = `${userId}/${uploadId}/upscaled.jpg`
+  const upscaledPath = `upscaled/${upscaledObjPath}`
 
-  const { error: upErr } = await svc.storage.from('upscaled').upload(upscaledPath, resultBytes, { contentType: 'image/jpeg' })
+  const { error: upErr } = await svc.storage.from('upscaled').upload(upscaledObjPath, resultBytes, { contentType: 'image/jpeg' })
   if (upErr) {
-    await failCleanup(svc, uploadId, originalPath, plan, userId, quotaReserved)
+    await failCleanup(svc, uploadId, originalObjPath, plan, userId, quotaReserved)
     return errorResponse('Failed to store upscaled image', 500)
   }
 
   // 11. Mark done, delete original
   await svc.from('uploads').update({ status: 'done', upscaled_path: upscaledPath }).eq('id', uploadId)
-  await svc.storage.from('originals').remove([originalPath])
+  await svc.storage.from('originals').remove([originalObjPath])
 
   // 12. Return signed URL
-  const { data: outSigned } = await svc.storage.from('upscaled').createSignedUrl(upscaledPath, 3600)
+  const { data: outSigned } = await svc.storage.from('upscaled').createSignedUrl(upscaledObjPath, 3600)
   if (!outSigned?.signedUrl) {
     return errorResponse('Failed to generate download URL', 500)
   }
@@ -198,7 +202,15 @@ async function failCleanup(
 }
 
 if (import.meta.main) {
-  const falApiKey = Deno.env.get('FAL_API_KEY')
-  if (!falApiKey) throw new Error('FAL_API_KEY is required')
-  Deno.serve(async (req) => handler(req, { anon: createAnonClient(req), service: createServiceClient() }))
+  Deno.serve(async (req) => {
+    try {
+      return await handler(req, { anon: createAnonClient(req), service: createServiceClient() })
+    } catch (e) {
+      console.error('[process-image] unhandled exception', e)
+      return new Response(JSON.stringify({ error: 'Internal server error' }), {
+        status: 500,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      })
+    }
+  })
 }

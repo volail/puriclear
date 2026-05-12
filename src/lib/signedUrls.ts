@@ -1,6 +1,6 @@
 import { supabase } from './supabase'
 
-export async function getSignedUrl(path: string): Promise<string> {
+export async function getSignedUrl(path: string, thumbWidth?: number): Promise<string> {
   if (path.startsWith('https://') || path.startsWith('http://')) {
     return path
   }
@@ -11,7 +11,8 @@ export async function getSignedUrl(path: string): Promise<string> {
     : path.startsWith('originals/')
     ? path.slice('originals/'.length)
     : path
-  const { data, error } = await supabase.storage.from(bucket).createSignedUrl(objectPath, 3600)
+  const transform = thumbWidth ? { width: thumbWidth, resize: 'contain' as const } : undefined
+  const { data, error } = await supabase.storage.from(bucket).createSignedUrl(objectPath, 3600, { transform })
   if (error || !data?.signedUrl) throw new Error('Failed to get signed URL')
   return data.signedUrl
 }
