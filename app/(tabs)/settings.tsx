@@ -70,7 +70,7 @@ export default function Settings() {
         <Text fontSize={24} fontWeight="700" color="$lavender">{t('settings.title')}</Text>
 
         <YStack gap="$2">
-          <Text fontWeight="600" color="$color">{t('settings.language')}</Text>
+          <Text fontWeight="600" color="#2D2D2D">{t('settings.language')}</Text>
           <XStack gap="$2">
             <Button
               flex={1}
@@ -96,17 +96,17 @@ export default function Settings() {
         <Separator />
 
         <YStack gap="$2">
-          <Text fontWeight="600" color="$color">{t('settings.account')}</Text>
-          <Text color="$color" opacity={0.7}>{session?.user?.email ?? session?.user?.id}</Text>
+          <Text fontWeight="600" color="#2D2D2D">{t('settings.account')}</Text>
+          <Text color="#2D2D2D" opacity={0.7}>{session?.user?.email ?? session?.user?.id}</Text>
         </YStack>
 
         <Separator />
 
         <YStack gap="$2">
-          <Text fontWeight="600" color="$color">{t('settings.subscription')}</Text>
-          <Text color="$color">{isPro ? t('settings.planPro') : t('settings.planFree')}</Text>
+          <Text fontWeight="600" color="#2D2D2D">{t('settings.subscription')}</Text>
+          <Text color="#2D2D2D">{isPro ? t('settings.planPro') : t('settings.planFree')}</Text>
           {isPro && expiresAt && (
-            <Text color="$color" opacity={0.7}>{t('settings.renewalDate')}: {expiresAt}</Text>
+            <Text color="#2D2D2D" opacity={0.7}>{t('settings.renewalDate')}: {expiresAt}</Text>
           )}
           {isPro ? (
             <Button
@@ -132,14 +132,14 @@ export default function Settings() {
         <Separator />
 
         <YStack gap="$2">
-          <Button onPress={() => Linking.openURL('https://puriclear.vercel.app/privacy')} backgroundColor="transparent" color="$color" paddingLeft={0}>{t('settings.privacyPolicy')}</Button>
-          <Button onPress={() => Linking.openURL('https://puriclear.vercel.app/terms')} backgroundColor="transparent" color="$color" paddingLeft={0}>{t('settings.termsOfService')}</Button>
-          <Button onPress={() => Linking.openURL('mailto:support@puriclear.app')} backgroundColor="transparent" color="$color" paddingLeft={0}>{t('settings.support')}</Button>
+          <Button onPress={() => Linking.openURL('https://puriclear.vercel.app/privacy')} backgroundColor="transparent" color="#2D2D2D" paddingLeft={0}>{t('settings.privacyPolicy')}</Button>
+          <Button onPress={() => Linking.openURL('https://puriclear.vercel.app/terms')} backgroundColor="transparent" color="#2D2D2D" paddingLeft={0}>{t('settings.termsOfService')}</Button>
+          <Button onPress={() => Linking.openURL('mailto:support@puriclear.app')} backgroundColor="transparent" color="#2D2D2D" paddingLeft={0}>{t('settings.support')}</Button>
         </YStack>
 
         <Separator />
 
-        <Button onPress={signOut} backgroundColor="$grey" color="$color" borderRadius="$6">
+        <Button onPress={signOut} backgroundColor="$grey" color="#2D2D2D" borderRadius="$6">
           {t('settings.signOut')}
         </Button>
 

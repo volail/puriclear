@@ -17,8 +17,12 @@ export default function TabsLayout() {
         options={{ title: t('upload.takePhoto') }}
       />
       <Tabs.Screen
-        name="gallery"
+        name="gallery/index"
         options={{ title: t('gallery.title') }}
+      />
+      <Tabs.Screen
+        name="gallery/[id]"
+        options={{ href: null }}
       />
       <Tabs.Screen
         name="settings"
