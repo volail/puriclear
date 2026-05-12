@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import { Image, Alert } from 'react-native'
+import { Alert } from 'react-native'
 import { YStack, XStack } from '@tamagui/stacks'
 import { Button } from '@tamagui/button'
 import { useLocalSearchParams, useRouter } from 'expo-router'
@@ -8,6 +8,7 @@ import { supabase } from '../../../src/lib/supabase'
 import { getUploadSignedUrl } from '../../../src/lib/signedUrls'
 import { useShare } from '../../../src/hooks/useShare'
 import { useMediaSave } from '../../../src/hooks/useMediaSave'
+import { ZoomableImage } from '../../../src/components/ZoomableImage'
 
 export default function PhotoDetail() {
   const { t } = useTranslation()
@@ -58,9 +59,7 @@ export default function PhotoDetail() {
 
   return (
     <YStack flex={1} backgroundColor="black">
-      {url && (
-        <Image source={{ uri: url }} style={{ flex: 1, resizeMode: 'contain' }} />
-      )}
+      {url && <ZoomableImage uri={url} />}
       <YStack padding="$4" gap="$3" backgroundColor="$cream">
         <XStack gap="$3">
           <Button flex={1} onPress={handleShare} backgroundColor="$lavender" color="white" borderRadius="$6">

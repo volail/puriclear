@@ -1,8 +1,9 @@
 import React, { useState } from 'react'
-import { View, Image, TouchableOpacity, Text, StyleSheet, Alert } from 'react-native'
+import { View, TouchableOpacity, Text, StyleSheet, Alert } from 'react-native'
 import { useLocalSearchParams, useRouter } from 'expo-router'
 import { useTranslation } from 'react-i18next'
 import { LoadingOverlay } from '../src/components/LoadingOverlay'
+import { ZoomableImage } from '../src/components/ZoomableImage'
 import { invokeProcessImage } from '../src/lib/processImage'
 
 export default function Preview() {
@@ -37,9 +38,7 @@ export default function Preview() {
   return (
     <View style={styles.container}>
       {processing && <LoadingOverlay />}
-      {uri && (
-        <Image source={{ uri }} style={styles.image} resizeMode="contain" />
-      )}
+      {uri && <ZoomableImage uri={uri} style={styles.image} />}
       <View style={styles.actions}>
         <TouchableOpacity
           onPress={handleUpscale}
