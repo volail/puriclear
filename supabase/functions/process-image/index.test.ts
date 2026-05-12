@@ -74,12 +74,18 @@ function makeClients(opts: {
   return { anon: anonDb, service: serviceDb }
 }
 
-function makeFetch(success = true): typeof fetch {
-  return async (_url: string | URL | Request) => ({
-    ok: success,
-    arrayBuffer: async () => new ArrayBuffer(100),
-    json: async () => ({ images: [{ url: 'https://fal.ai/result.jpg' }] }),
-  } as Response)
+function makeFetch(success = true, capturedUrls: string[] = []): typeof fetch {
+  return async (input: string | URL | Request) => {
+    const url = typeof input === 'string' ? input : input instanceof URL ? input.href : input.url
+    capturedUrls.push(url)
+    return {
+      ok: success,
+      status: success ? 200 : 500,
+      arrayBuffer: async () => new ArrayBuffer(100),
+      json: async () => ({ image: { url: 'https://fal.ai/result.jpg' } }),
+      text: async () => 'fal error body',
+    } as Response
+  }
 }
 
 Deno.test('rejects unauthenticated request', async () => {
@@ -120,4 +126,13 @@ Deno.test('returns 500 when fal.ai fails', async () => {
   const clients = makeClients({ plan: 'free', quotaAllowed: true })
   const res = await handler(makeReq(), clients, makeFetch(false))
   assertEquals(res.status, 500)
+})
+
+Deno.test('calls clarity-upscaler endpoint', async () => {
+  const calledUrls: string[] = []
+  const clients = makeClients({ plan: 'free', quotaAllowed: true })
+  const res = await handler(makeReq(), clients, makeFetch(true, calledUrls))
+  assertEquals(res.status, 200)
+  const falCall = calledUrls.find(u => u.includes('fal.run'))
+  assertEquals(falCall, 'https://fal.run/fal-ai/clarity-upscaler')
 })

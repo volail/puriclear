@@ -128,16 +128,16 @@ export async function handler(
     return errorResponse('Failed to sign original URL', 500)
   }
 
-  // 9. Call fal.ai aura-sr
+  // 9. Call fal.ai clarity-upscaler
   let falRes: Response
   try {
-    falRes = await fetchFn('https://fal.run/fal-ai/aura-sr', {
+    falRes = await fetchFn('https://fal.run/fal-ai/clarity-upscaler', {
       method: 'POST',
       headers: {
         Authorization: `Key ${Deno.env.get('FAL_API_KEY') ?? ''}`,
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ image_url: signed.signedUrl, upscaling_factor: 2, overlapping_tiles: false }),
+      body: JSON.stringify({ image_url: signed.signedUrl, scale: 2, creativity: 0.35, resemblance: 0.6, dynamic: 6 }),
       signal: AbortSignal.timeout(180000),
     })
   } catch (e) {
