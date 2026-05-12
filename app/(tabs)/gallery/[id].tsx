@@ -14,17 +14,18 @@ export default function PhotoDetail() {
   const { t } = useTranslation()
   const router = useRouter()
   const { id, signedUrl: initialUrl } = useLocalSearchParams<{ id: string; signedUrl?: string }>()
-  const [url, setUrl] = useState<string | null>(
-    typeof initialUrl === 'string' ? initialUrl : null
-  )
+  const [url, setUrl] = useState<string | null>(null)
   const { shareUrl } = useShare()
   const { saveToDevice } = useMediaSave()
 
   useEffect(() => {
-    if (!url && id && typeof id === 'string') {
+    if (typeof initialUrl === 'string') {
+      setUrl(initialUrl)
+    } else if (id && typeof id === 'string') {
+      setUrl(null)
       getUploadSignedUrl(id).then(setUrl).catch(() => {})
     }
-  }, [id])
+  }, [id, initialUrl])
 
   async function handleShare() {
     if (!url) return

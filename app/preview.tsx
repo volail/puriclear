@@ -70,7 +70,9 @@ export default function Preview() {
   return (
     <View style={[styles.container, safeTop]}>
       {processing && <LoadingOverlay />}
-      {uri && <ZoomableImage uri={uri} style={styles.image} />}
+      <View style={styles.image}>
+        {uri ? <ZoomableImage uri={uri} style={StyleSheet.absoluteFill} /> : null}
+      </View>
       <View style={[styles.actions, safeBottom]}>
         <TouchableOpacity
           onPress={handleUpscale}
