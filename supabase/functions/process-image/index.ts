@@ -159,29 +159,6 @@ export async function handler(
     return errorResponse('AI returned no image', 500)
   }
 
-  // 9b. Call fal.ai face restoration (graceful fallback to esrgan result on failure)
-  try {
-    const faceRes = await fetchFn('https://fal.run/fal-ai/face-restoration', {
-      method: 'POST',
-      headers: {
-        Authorization: `Key ${Deno.env.get('FAL_API_KEY') ?? ''}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ image_url: resultUrl }),
-      signal: AbortSignal.timeout(90_000),
-    })
-    if (faceRes.ok) {
-      const faceData = await faceRes.json()
-      const faceUrl: string = faceData.image?.url ?? faceData.images?.[0]?.url
-      if (faceUrl) resultUrl = faceUrl
-      else console.warn('[process-image] face restoration returned no image url, using esrgan result')
-    } else {
-      console.warn('[process-image] face restoration failed', faceRes.status, await faceRes.text().catch(() => '(unreadable)'))
-    }
-  } catch (e) {
-    console.warn('[process-image] face restoration timed out or threw, using esrgan result', e)
-  }
-
   // 10. Fetch result and upload to upscaled bucket
   const resultRes = await fetchFn(resultUrl)
   if (!resultRes.ok) {
